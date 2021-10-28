@@ -1,0 +1,320 @@
+#include "run_algorithm.h"
+
+void RunAlgorithm(algorithm_data alg_data){
+
+    Timer *t1 = new Timer();
+
+    //Make trace log in file (.trace.log)
+    MakeTrace();
+
+    //Ler a instância
+    Instance::ReadMarceloInstance(alg_data.param.instance_file);
+    //Instance::PrintInstance1();exit(0);
+
+    Instance::seed = alg_data.param.u_seed;
+
+    Discretize(1);
+
+    vector<Solution*> nd_set_solution;
+
+    alg_data.is_optimal = false;
+
+    t1->start();
+
+    //Definir o tempo limite de execução
+    alg_data.time_limit = alg_data.param.u_max_time_factor * Instance::num_jobs * log(Instance::num_machine);
+
+    #ifdef DEBUG
+        cout << "Tempo limite: " << alg_data.time_limit << endl;
+    #endif
+
+    if(alg_data.param.algorithm_name == "GA"){
+        RunAlgorithmNSGAII(alg_data, nd_set_solution, t1);
+    }
+    else if(alg_data.param.algorithm_name == "EXACT"){
+        RunAlgorithmExact(alg_data, nd_set_solution);
+    }
+    else if(alg_data.param.algorithm_name == "SPEAII"){
+        RunAlgorithmSPEAII(alg_data, nd_set_solution, t1);
+    }
+    else if(alg_data.param.algorithm_name == "MOGA"){
+        RunAlgorithmMOGA(alg_data, nd_set_solution, t1);
+    }
+
+    t1->stop();
+
+    //Eliminar soluções que estão fora do horizonte de planejamento
+    SelectOnlyValidSolutions(nd_set_solution);
+
+    alg_data.elapsed_time_sec = t1->getElapsedTimeInMilliSec();
+    alg_data.non_dominated_set.clear();
+    pair<unsigned, double> aux;
+    for(auto it:nd_set_solution){
+        #ifdef DEBUG
+            it->Check();
+        #endif
+        aux.first = it->makeSpan*Instance::discretization_factor;
+        aux.second = it->TEC*Instance::discretization_factor;
+        alg_data.non_dominated_set.push_back(aux);
+    }
+
+    //Ordenar os pontos
+    SortByMakespan(alg_data.non_dominated_set);
+
+    //Salvar o conjunto não-dominado em arquivo
+    SalveFileSolution(alg_data);
+    delete t1;
+
+}
+
+void RunAlgorithmNSGAII(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
+
+
+    NDSetSolution<GASolution *> *non_dominated_set_ga = new NDSetSolution<GASolution *>();
+
+    non_dominated_set_ga->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+
+    #ifdef DEBUG
+        cout << "===========Inicio População Inicial===========" << endl;
+        PrintPopulation(non_dominated_set_ga->set_solution);
+        //non_dominated_set_ga->PrintSetSolution();
+        cout << "===========Fim População Inicial===========" << endl << endl;
+        //exit(0);
+    #endif
+
+    //alg_data.time_limit=0;
+    nsga_ii(alg_data, non_dominated_set_ga->set_solution, t1);
+
+    SortByMakespan(non_dominated_set_ga->set_solution);
+
+    #ifdef DEBUG
+        cout << "===========Inicio NSGA===========" << endl;
+        PrintPopulation(non_dominated_set_ga->set_solution);
+        //non_dominated_set_ga->PrintSetSolution();
+        t1->printElapsedTimeInMilliSec();
+        cout << "===========Fim NSGA===========" << endl;
+    #endif
+
+    non_dominated_set.clear();
+    for(auto it:non_dominated_set_ga->set_solution){
+        non_dominated_set.push_back(it);
+    }
+}
+
+void RunAlgorithmSPEAII(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
+
+
+    NDSetSolution<GASolution *> *non_dominated_set_ga = new NDSetSolution<GASolution *>();
+    NDSetSolution<GASolution *> *nds = new NDSetSolution<GASolution *>();
+
+    non_dominated_set_ga->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+
+    #ifdef DEBUG
+        cout << "===========Inicio População Inicial===========" << endl;
+        PrintPopulation(non_dominated_set_ga->set_solution);
+        //non_dominated_set_ga->PrintSetSolution();
+        cout << "===========Fim População Inicial===========" << endl << endl;
+        //exit(0);
+    #endif
+
+    //alg_data.time_limit=0;
+    spea_ii(alg_data, non_dominated_set_ga->set_solution, t1);
+
+    for(auto it:non_dominated_set_ga->set_solution){
+        nds->AddSolution(it);
+    }
+
+    SortByMakespan(nds->set_solution);
+
+    #ifdef DEBUG
+        cout << "===========Inicio SPEAII===========" << endl;
+        PrintPopulation(nds->set_solution);
+        //non_dominated_set_ga->PrintSetSolution();
+        t1->printElapsedTimeInMilliSec();
+        cout << "===========Fim SPEAII===========" << endl;
+    #endif
+
+    non_dominated_set.clear();
+    for(auto it:nds->set_solution){
+        non_dominated_set.push_back(it);
+    }
+
+    delete non_dominated_set_ga;
+    delete nds;
+}
+
+void RunAlgorithmMOGA(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
+
+
+    NDSetSolution<GASolution *> *non_dominated_set_ga = new NDSetSolution<GASolution *>();
+    NDSetSolution<GASolution *> *nds = new NDSetSolution<GASolution *>();
+
+    non_dominated_set_ga->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+
+    #ifdef DEBUG
+        cout << "===========Inicio População Inicial===========" << endl;
+        PrintPopulation(non_dominated_set_ga->set_solution);
+        //non_dominated_set_ga->PrintSetSolution();
+        cout << "===========Fim População Inicial===========" << endl << endl;
+        //exit(0);
+    #endif
+
+    //alg_data.time_limit=0;
+    moga(alg_data, non_dominated_set_ga->set_solution, t1);
+
+    for(auto it:non_dominated_set_ga->set_solution){
+        nds->AddSolution(it);
+    }
+
+    SortByMakespan(nds->set_solution);
+
+    #ifdef DEBUG
+        cout << "===========Inicio SPEAII===========" << endl;
+        PrintPopulation(nds->set_solution);
+        //non_dominated_set_ga->PrintSetSolution();
+        t1->printElapsedTimeInMilliSec();
+        cout << "===========Fim SPEAII===========" << endl;
+    #endif
+
+    non_dominated_set.clear();
+    for(auto it:nds->set_solution){
+        non_dominated_set.push_back(it);
+    }
+
+    delete non_dominated_set_ga;
+    delete nds;
+}
+
+
+void RunAlgorithmExact(algorithm_data alg_data, vector<Solution*> &non_dominated_set){
+
+    MonoSolution * my_solution;
+
+    //Gerar uma solução inicial gulosa considerando o objetivo do makespan
+    my_solution = new MonoSolution();
+
+    my_solution->weights.first = alg_data.param.d_alpha;
+    my_solution->weights.second = 1-alg_data.param.d_alpha;
+
+    //my_solution->GenerateGreedySolutionWeigth();
+
+    //Modelo ponderado
+    RunWeightedMathModel(alg_data.time_limit, alg_data.param.d_alpha, my_solution);
+
+    non_dominated_set.push_back(my_solution);
+
+    if(my_solution->is_optimal){
+        alg_data.is_optimal = true;
+    }
+
+    alg_data.param.file_solution = alg_data.param.folder_solution + alg_data.param.algorithm_name + "_" + alg_data.param.instance_name + "_" + alg_data.param.s_alpha + ".sol";
+}
+
+
+void Discretize(unsigned factor){
+
+    /*Fazer a discretização do tempo*/
+    Instance::discretization_factor = factor;
+    Instance::num_planning_horizon = ceil(double(Instance::num_planning_horizon+1)
+                                      /double(Instance::discretization_factor))-1;
+    for(unsigned i=0; i<Instance::num_days; i++){
+        Instance::v_peak_start[i] = ceil(double(Instance::v_peak_start[i])
+                                        /double(Instance::discretization_factor));
+        Instance::v_peak_end[i] = ceil(double(Instance::v_peak_end[i]+1)
+                                   /double(Instance::discretization_factor))-1;
+    }
+    for(unsigned i=1; i<=Instance::num_machine; i++){
+        for(unsigned j=1; j<=Instance::num_jobs; j++){
+            Instance::m_processing_time[i][j] = ceil(double(Instance::m_processing_time[i][j])
+                                                     /double(Instance::discretization_factor));
+            for(unsigned k=1; k<=Instance::num_jobs; k++){
+                Instance::m_setup_time[i][j][k] = ceil(double(Instance::m_setup_time[i][j][k])
+                                                       /double(Instance::discretization_factor));
+            }
+        }
+    }
+    Instance::max_energy_cost = ceil(double(Instance::max_energy_cost)
+                                     /double(Instance::discretization_factor));
+    Instance::max_makespan = ceil(double(Instance::max_makespan)
+                                  /double(Instance::discretization_factor));
+
+}
+
+/*
+ * Método para salvar em arquivo a solução encontrada por um algoritmo
+ */
+void SalveFileSolution(algorithm_data alg_data){
+
+    ofstream MyFile;
+
+    //Tentar abrir um arquivo existente
+    MyFile.open(alg_data.param.file_solution, ios_base::out | ios_base::in | ios_base::ate);  // will not create file
+
+    //Se o arquivo não existe então criar um novo
+    if (!MyFile.is_open())
+    {
+        MyFile.clear();
+        MyFile.open(alg_data.param.file_solution, ios_base::out);  // will create if necessary
+
+    }
+    else{
+        MyFile << endl << endl;
+    }
+
+    MyFile << "Instance: " << alg_data.param.instance_name << endl;
+    MyFile << "Algorithm: " << alg_data.param.algorithm_name << endl;
+    MyFile << "Time_limit: "<< alg_data.time_limit << endl;
+    MyFile << "Seed: "<< alg_data.param.s_seed << endl;
+    MyFile << "Elapsed_time: " << alg_data.elapsed_time_sec << endl;
+    if(alg_data.param.algorithm_name == "GA"){
+        MyFile << "param1: " << alg_data.param.s_population_size << endl;
+        MyFile << "param2: " << alg_data.param.s_prob_mutation << endl;
+        MyFile << "param3: " << "nan" << endl;
+    }
+    else{
+        MyFile << "param1: " << "nan" << endl;
+        MyFile << "param2: " << "nan" << endl;
+        MyFile << "param3: " << "nan" << endl;
+    }
+
+
+    MyFile << endl;
+
+    MyFile << "Makespan" << "\t" << "TEC";
+
+    for (auto it=alg_data.non_dominated_set.begin(); it != alg_data.non_dominated_set.end();++it) {
+        MyFile << endl << it->first << "\t" << it->second;
+    }
+
+    //Imprimir demarcação de final de arquivo
+    if(alg_data.param.algorithm_name == "EXACT"){
+
+        if(alg_data.is_optimal){
+            MyFile << "\t" << "*";
+        }
+        else{
+            MyFile << "\t" << "-";
+        }
+    }
+
+    MyFile << "\t" << "END";
+
+    MyFile.close();
+}
+
+/*
+ * Função para selecionar apenas solução válidas que estão no conjunto não-dominado
+ */
+void SelectOnlyValidSolutions(vector<Solution*> non_dominated_set){
+    for(auto it_sol = non_dominated_set.begin(); it_sol != non_dominated_set.end();){
+        //Se o makespan é maior que o horizonte de planejamento
+        if((*it_sol)->makeSpan > (Instance::num_planning_horizon)*Instance::num_days){
+            //Remover essa solução do conjunto
+            it_sol = non_dominated_set.erase(it_sol);
+        }
+        else{
+            ++it_sol;
+        }
+    }
+}
+
