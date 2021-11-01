@@ -1,0 +1,10 @@
+*.pro.user
+*.trace.log
+*.log
+*.sol
+*.qmake.stash
+Makefile
+*.pro
+*.o
+build/
+tuning/

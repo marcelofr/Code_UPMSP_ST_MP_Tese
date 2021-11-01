@@ -11,6 +11,7 @@
 #include "math_model.h"
 #include "speaii.h"
 #include "moga.h"
+#include "metric.h"
 
 using namespace std;
 

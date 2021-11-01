@@ -28,13 +28,13 @@ void RunAlgorithm(algorithm_data alg_data){
         cout << "Tempo limite: " << alg_data.time_limit << endl;
     #endif
 
-    if(alg_data.param.algorithm_name == "GA"){
+    if(alg_data.param.algorithm_name == "NSGAII"){
         RunAlgorithmNSGAII(alg_data, nd_set_solution, t1);
     }
     else if(alg_data.param.algorithm_name == "EXACT"){
         RunAlgorithmExact(alg_data, nd_set_solution);
     }
-    else if(alg_data.param.algorithm_name == "SPEAII"){
+    else if(alg_data.param.algorithm_name == "SPEA2"){
         RunAlgorithmSPEAII(alg_data, nd_set_solution, t1);
     }
     else if(alg_data.param.algorithm_name == "MOGA"){
@@ -61,8 +61,23 @@ void RunAlgorithm(algorithm_data alg_data){
     //Ordenar os pontos
     SortByMakespan(alg_data.non_dominated_set);
 
-    //Salvar o conjunto não-dominado em arquivo
-    SalveFileSolution(alg_data);
+    #ifndef IRACE
+        //Salvar o conjunto não-dominado em arquivo
+        SalveFileSolution(alg_data);
+    #endif
+
+    #ifdef IRACE
+        pair<unsigned, double> reference_point;
+        double hv;
+        /*reference_point.first = alg_data.non_dominated_set.back().first;
+        reference_point.second = alg_data.non_dominated_set.front().second;*/
+        reference_point.first = Instance::max_makespan;
+        reference_point.second = Instance::max_energy_cost;
+        hv = CalculateHypervolume(alg_data.non_dominated_set, reference_point);
+        //cout << hv << " " << ir.elapsed_time_sec << endl;
+        cout << hv << endl;
+    #endif
+
     delete t1;
 
 }
@@ -266,7 +281,7 @@ void SalveFileSolution(algorithm_data alg_data){
     MyFile << "Time_limit: "<< alg_data.time_limit << endl;
     MyFile << "Seed: "<< alg_data.param.s_seed << endl;
     MyFile << "Elapsed_time: " << alg_data.elapsed_time_sec << endl;
-    if(alg_data.param.algorithm_name == "GA"){
+    if(alg_data.param.algorithm_name == "NSGAII" || alg_data.param.algorithm_name == "SPEA2" || alg_data.param.algorithm_name == "MOGA"){
         MyFile << "param1: " << alg_data.param.s_population_size << endl;
         MyFile << "param2: " << alg_data.param.s_prob_mutation << endl;
         MyFile << "param3: " << "nan" << endl;
@@ -318,3 +333,207 @@ void SelectOnlyValidSolutions(vector<Solution*> non_dominated_set){
     }
 }
 
+
+void CalculateMetric(string folder_solution, string folder_instance)
+{
+
+    vector<string> files;
+    map<string,map<string, map<string, vector<pair<unsigned, double>>>>> sets;
+    map<string,map<string, map<string, double>>> hypervolume;
+    map<string,map<string, map<string, double>>> diversity;
+    map<string, pair<unsigned, double>> reference_points;
+
+    //Encontrar todos os arquivos que estão na pasta de soluções
+    FindFilesInFolder(folder_solution, files);
+
+    //Ler o conteúdo de cada arquivo de solução e guardar em sets
+    ReadFiles(files, sets);
+
+    //Gerar o conjunto de referência
+    //Calcular seu hipervolume do conjunto de referência
+    //Salvá-lo em um arquivo
+    GenerateReferenceSet(folder_solution, sets, hypervolume, reference_points);
+
+    //Calcular hipervolume para todas as soluções encontradas
+    HypervolumeMetric(sets, hypervolume, reference_points);
+
+    //Calcular diversidade para todas as soluções encontradas
+    DiversityMetric(sets, diversity);
+
+}
+
+
+void HypervolumeMetric(map<string,map<string, map<string, vector<pair<unsigned, double>>>>> sets,
+                                map<string,map<string, map<string, double>>> &hypervolume,
+                                map<string, pair<unsigned, double>> reference_points)
+{
+
+    //Calcular o hipervolume para todas as instâncias em sets
+    CalculateHypervolumeSet(sets, hypervolume, reference_points);
+
+    cout << "----------------Hipervolume-----------------" << endl;
+
+    cout << setprecision(10);
+
+    //Imprimir os resultados sumarizados
+    cout << "Resultados sumarizados" << endl << endl;
+    //Cabeçalho
+    cout << "Instance ";
+    for(auto &it_algorithm : sets.begin()->second){
+        cout << " " << it_algorithm.first << " ";
+    }
+    cout << endl;
+
+    //Corpo
+    for(auto &instance : hypervolume){
+
+        cout << instance.first << " " ;
+
+
+        for(auto &it_algorithm : instance.second){
+        long HV = 0;
+        for(auto &seed : it_algorithm.second){
+
+            HV += seed.second;
+            //cout << seed.second << " ";
+        }
+        cout << HV/it_algorithm.second.size() << " ";
+        }
+
+        cout << endl;
+    }
+
+    cout << endl;
+    cout << endl;
+
+    //Imprimir os resultados sumarizados
+    cout << "Resultados completos" << endl << endl;
+
+    //Cabeçalho
+    cout << "Algoritmo ";
+    for(auto &it_algorithm : sets.begin()->second){
+
+        for(auto &it_seed : it_algorithm.second){
+            cout << " " << it_algorithm.first << " ";
+        }
+    }
+
+    cout << endl;
+
+    cout << "Instance\\Seed ";
+    for(auto &it_algorithm : sets.begin()->second){
+
+        for(auto &it_seed : it_algorithm.second){
+            cout << " " << it_seed.first << " ";
+        }
+
+    }
+    cout << endl;
+
+    //Corpo
+    for(auto &instance : hypervolume){
+
+        cout << instance.first << " " ;
+
+
+        for(auto &it_algorithm : instance.second){
+            long HV = 0;
+            for(auto &seed : it_algorithm.second){
+
+                HV = seed.second;
+                //cout << seed.second << " ";
+                cout << HV << " ";
+            }
+
+        }
+
+        cout << endl;
+    }
+}
+
+void DiversityMetric(map<string,map<string, map<string, vector<pair<unsigned, double>>>>> sets,
+                                map<string,map<string, map<string, double>>> &diversity)
+{
+
+    cout << endl << endl << "----------------Diversidade-----------------" << endl;
+    //Calcular a diversidade para todas as instâncias em sets
+    CalculateDiversitySet(sets, diversity);
+
+    cout << setprecision(10);
+
+    //Imprimir os resultados sumarizados
+    cout << "Resultados sumarizados" << endl << endl;
+    //Cabeçalho
+    cout << "Instance ";
+    for(auto &it_algorithm : sets.begin()->second){
+        cout << " " << it_algorithm.first << " ";
+    }
+    cout << endl;
+
+    //Corpo
+    for(auto &instance : diversity){
+
+        cout << instance.first << " " ;
+
+
+        for(auto &it_algorithm : instance.second){
+        double HV = 0;
+        for(auto &seed : it_algorithm.second){
+
+            HV += seed.second;
+            //cout << seed.second << " ";
+        }
+        cout << HV/it_algorithm.second.size() << " ";
+        }
+
+        cout << endl;
+    }
+
+    cout << endl;
+    cout << endl;
+
+    //Imprimir os resultados sumarizados
+    cout << "Resultados completos" << endl << endl;
+
+    //Cabeçalho
+    cout << "Algoritmo ";
+    for(auto &it_algorithm : sets.begin()->second){
+
+        for(auto &it_seed : it_algorithm.second){
+            cout << " " << it_algorithm.first << " ";
+        }
+    }
+
+    cout << endl;
+
+    cout << "Instance\\Seed ";
+    for(auto &it_algorithm : sets.begin()->second){
+
+        for(auto &it_seed : it_algorithm.second){
+            cout << " " << it_seed.first << " ";
+        }
+
+    }
+    cout << endl;
+
+    //Corpo
+    for(auto &instance : diversity){
+
+        cout << instance.first << " " ;
+
+
+        for(auto &it_algorithm : instance.second){
+            double HV = 0;
+            for(auto &seed : it_algorithm.second){
+
+                HV = seed.second;
+                //cout << seed.second << " ";
+                cout << HV << " ";
+            }
+
+        }
+
+        cout << endl;
+    }
+
+}

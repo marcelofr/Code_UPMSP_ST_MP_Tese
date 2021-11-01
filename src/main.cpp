@@ -18,7 +18,7 @@ int main(int argc, char** argv)
        alg_data.param.algorithm_name = argv[5];
        alg_data.param.folder_solution = argv[6];
        alg_data.param.s_max_time_factor = argv[7];
-       if(alg_data.param.algorithm_name == "GA"){
+       if(alg_data.param.algorithm_name == "NSGAII" || alg_data.param.algorithm_name == "SPEA2" || alg_data.param.algorithm_name == "MOGA"){
            alg_data.param.s_population_size = argv[8];
            alg_data.param.s_prob_mutation = argv[9];
        }
@@ -33,7 +33,7 @@ int main(int argc, char** argv)
    else{
 
        alg_data.param.instance_folder = "../../Instances/SMALL/"; alg_data.param.instance_name = "6_2_1439_3_S_1-9";
-       //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "50_10_1439_5_S_1-9";
+       //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "50_20_1439_5_S_1-9";
        //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "250_10_1439_5_S_1-124";
        //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "750_10_1439_5_S_1-124";
 
@@ -41,10 +41,10 @@ int main(int argc, char** argv)
        alg_data.param.instance_file = alg_data.param.instance_folder + alg_data.param.instance_name + alg_data.param.instance_extension;
 
        alg_data.param.s_seed = "60543";
-       //alg_data.param.algorithm_name = "GA"; //nsga-ii
+       //alg_data.param.algorithm_name = "NSGAII"; //nsga-ii
        //alg_data.param.algorithm_name = "EXACT";
-       //alg_data.param.algorithm_name = "SPEAII";
-       alg_data.param.algorithm_name = "MOGA";
+       alg_data.param.algorithm_name = "SPEA2";
+       //alg_data.param.algorithm_name = "MOGA";
 
        alg_data.param.s_max_time_factor = "1000";
        //alg_data.param.folder_solution = "../../Solutions/2021_07_20_14_20/";
