@@ -21,7 +21,7 @@ error() {
     exit 1
 }
 
-EXE=/home/marcelo/Dropbox/Doutorado-Compartilhado/Tese/Code_UPMSP_ST_MP/build/src/src
+EXE=/home/marcelo/cpp_projects/Code_UPMSP_ST_MP_PEERJ/build/src/src
 FIXED_PARAMS="GA Solutions/ 1000"
 
 CONFIG_ID=$1
