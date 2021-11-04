@@ -226,7 +226,7 @@ bool CompareCrowdingDistance(GASolution * l, GASolution * r) //(2)
 /*
  * Ordenar as soluções da frente F[i] de acordo com a crowding distance
  */
-void Sort(vector<GASolution*> F_i)
+void Sort(vector<GASolution*> & F_i)
 {
     try
     {

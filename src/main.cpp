@@ -43,7 +43,7 @@ int main(int argc, char** argv)
        alg_data.param.s_seed = "60543";
        //alg_data.param.algorithm_name = "NSGAII"; //nsga-ii
        //alg_data.param.algorithm_name = "EXACT";
-       alg_data.param.algorithm_name = "SPEA2";
+       alg_data.param.algorithm_name = "CalculateMetric";
        //alg_data.param.algorithm_name = "MOGA";
 
        alg_data.param.s_max_time_factor = "1000";
@@ -67,7 +67,14 @@ int main(int argc, char** argv)
    //EXACT
    alg_data.param.d_alpha = atof(alg_data.param.s_alpha.c_str());
 
-   RunAlgorithm(alg_data);
+   if(alg_data.param.algorithm_name == "CalculateMetric"){
+        CalculateMetric(alg_data.param.folder_solution);
+   }
+   else{
+       RunAlgorithm(alg_data);
+   }
+
+
 
     return 0;
 }

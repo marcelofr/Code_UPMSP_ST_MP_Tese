@@ -334,7 +334,7 @@ void SelectOnlyValidSolutions(vector<Solution*> non_dominated_set){
 }
 
 
-void CalculateMetric(string folder_solution, string folder_instance)
+void CalculateMetric(string folder_solution)
 {
 
     vector<string> files;
