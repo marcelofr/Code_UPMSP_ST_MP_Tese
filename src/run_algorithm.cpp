@@ -382,6 +382,7 @@ void HypervolumeMetric(map<string,map<string, map<string, vector<pair<unsigned, 
     for(auto &it_algorithm : sets.begin()->second){
         cout << " " << it_algorithm.first << " ";
     }
+    cout << " Reference point";
     cout << endl;
 
     //Corpo
@@ -399,6 +400,8 @@ void HypervolumeMetric(map<string,map<string, map<string, vector<pair<unsigned, 
         }
         cout << HV/it_algorithm.second.size() << " ";
         }
+
+        cout << reference_points[instance.first].first << ";" << reference_points[instance.first].second;
 
         cout << endl;
     }
