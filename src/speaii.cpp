@@ -214,22 +214,22 @@ void EnvironmentalSelection(vector<GASolution *> &new_a, vector<GASolution *> &p
 
 }
 
-void BinaryTournamentSelection(vector<GASolution *> a_new, vector<GASolution *> &m, int population_size){
+void BinaryTournamentSelection(vector<GASolution *> p, vector<GASolution *> &parents, int population_size){
 
-    m.clear();
+    parents.clear();
     int x, y, size_a;
 
-    size_a = a_new.size();
+    size_a = p.size();
 
     for (int i = 0; i < population_size; i++) {
         x = random()%size_a;
         y = random()%size_a;
         //if(*a_new[x] < *a_new[y]){
-        if(a_new[x]->fitness < a_new[y]->fitness){
-            m.push_back(new GASolution(*a_new[x]));
+        if(p[x]->fitness < p[y]->fitness){
+            parents.push_back(new GASolution(*p[x]));
         }
         else{
-            m.push_back(new GASolution(*a_new[y]));
+            parents.push_back(new GASolution(*p[y]));
         }
     }
 

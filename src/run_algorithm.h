@@ -12,6 +12,7 @@
 #include "speaii.h"
 #include "moga.h"
 #include "metric.h"
+#include "nsgai.h"
 
 using namespace std;
 
@@ -35,5 +36,6 @@ void RunAlgorithmNSGAII(algorithm_data alg_data, vector<Solution*> &non_dominate
 void RunAlgorithmExact(algorithm_data alg_data, vector<Solution*> &non_dominated_set);
 void RunAlgorithmSPEAII(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 void RunAlgorithmMOGA(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
+void RunAlgorithmNSGAI(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 
 #endif // RUN_ALGORITHM_H

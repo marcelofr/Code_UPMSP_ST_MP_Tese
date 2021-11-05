@@ -6,71 +6,63 @@ void moga(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1){
 
     pair<double,double> w;
     vector<GASolution*> new_p;
+    vector<GASolution*> parents, offspring;
     int random;
+    unsigned i=0;
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-
-
-        Crossover(p, new_p, alg_data.param.u_population_size);
-        Mutation(p, new_p, alg_data.param.u_prob_mutation);
 
         random = rand()%100;
         w.first = double(random)/double(100);
         w.second = double(100-random)/double(100);
 
         ComputeFitness(p, w);
-        ComputeFitness(new_p, w);
 
-        Selection(p, new_p, alg_data.param.u_population_size);
+        Selection(p, alg_data.param.u_population_size);
 
+        BinaryTournamentSelection(p, parents, alg_data.param.u_population_size);
+
+        Crossover(parents, offspring, alg_data.param.u_population_size);
+        Mutation(parents, offspring, alg_data.param.u_prob_mutation);
+
+        Union(p, offspring);
 
         //Registar a contagem do tempo
         t1->stop();
 
+        i++;
+
     }
 }
 
-void Selection(vector<GASolution *> &p, vector<GASolution *> &new_p,
-                            unsigned population_size){
+void Selection(vector<GASolution *> &p, unsigned population_size){
 
-    vector<GASolution *> all;
     unsigned size;
 
-    //Remover duplicidade
-    for (auto &it_p: p) {
-        for (auto it_new_p = new_p.begin(); it_new_p != new_p.end();) {
-            if(it_p->makeSpan == (*it_new_p)->makeSpan
-                    && abs(it_p->TEC - (*it_new_p)->TEC) < EPS){
-                delete *it_new_p;
-                it_new_p = new_p.erase(it_new_p);
-            }
-            else{
-                ++it_new_p;
-            }
-        }
-    }
-
-    copy(p.begin(), p.end(), back_inserter(all));
-    copy(new_p.begin(), new_p.end(), back_inserter(all));
-
-    size = all.size();
+    size = p.size();
 
     //Remover os indivíduos com menor aptidão
     if(size > population_size){
-        SortByFitness(all);
-        while (all.size() > population_size) {
-            delete all.back();
-            all.pop_back();
+        SortByFitness(p);
+        while (p.size() > population_size) {
+            delete p.back();
+            p.pop_back();
         }
     }
-
-    new_p.clear();
-    p.clear();
-
-    copy(all.begin(), all.end(), back_inserter(p));
-
 }
+
+
+void Union(vector<GASolution *> &a, vector<GASolution *> &b){
+
+
+    for (auto it_b : b) {
+        PopulationAddIndividual(a, it_b);
+    }
+
+    b.clear();
+}
+
 
 void ComputeFitness(vector<GASolution *> &p, pair<double,double> w){
 
@@ -85,7 +77,7 @@ void ComputeFitness(vector<GASolution *> &p, pair<double,double> w){
         for (int j = 0; j < size; j++) {
             if(i != j){
                 //if(set[i].Dominate(set[j])){
-                if(*p[i] < *p[j]){
+                if(*p[j] < *p[i]){
                 //if(*all[j] <= *all[i]){
                     p[i]->strength_value++;
                     p[i]->set_solution_dominated.push_back(p[j]);
@@ -94,7 +86,7 @@ void ComputeFitness(vector<GASolution *> &p, pair<double,double> w){
         }
     }
 
-    //Calcular o rawFitness
+    /*//Calcular o rawFitness
     for (int i = 0; i < size; i++) {
         p[i]->raw_fitness = 0;
         for (int j = 0; j < size; j++) {
@@ -106,7 +98,7 @@ void ComputeFitness(vector<GASolution *> &p, pair<double,double> w){
                 }
             }
         }
-    }
+    }*/
 
     unsigned max_makespan, min_makespan;
     double max_tec, min_tec;
@@ -116,13 +108,13 @@ void ComputeFitness(vector<GASolution *> &p, pair<double,double> w){
     for (auto it : p) {
         if(it->makeSpan < min_makespan)
             min_makespan = it->makeSpan;
-        else if(it->makeSpan > max_makespan){
+        if(it->makeSpan > max_makespan){
             max_makespan = it->makeSpan;
         }
 
         if(it->TEC < min_tec)
             min_tec = it->TEC;
-        else if(it->TEC > max_tec){
+        if(it->TEC > max_tec){
             max_tec = it->TEC;
         }
     }
@@ -130,9 +122,9 @@ void ComputeFitness(vector<GASolution *> &p, pair<double,double> w){
     //Calcular o fitness
     for (int i = 0; i < size; i++) {
         //Calcular o fitness
-        p[i]->fitness = p[i]->raw_fitness
-                + double((p[i]->makeSpan-min_makespan)/(max_makespan-min_makespan))*w.first
-                + double((p[i]->TEC-min_tec)/(max_tec-min_tec))*w.second ;
+        p[i]->fitness = p[i]->strength_value
+                + double((max_makespan - p[i]->makeSpan)/(max_makespan-min_makespan))*w.first
+                + double((max_tec-p[i]->TEC)/(max_tec-min_tec))*w.second ;
     }
 
 }
