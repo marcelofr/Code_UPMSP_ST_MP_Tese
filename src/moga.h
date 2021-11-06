@@ -5,7 +5,7 @@
 #include "set_solution.h"
 #include <algorithm>
 #include "genetic_basic.h"
-#include "speaii.h"
+#include "spea2.h"
 
 void moga(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1);
 void SortByFitness(vector<GASolution *> &set_solution);

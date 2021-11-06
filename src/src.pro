@@ -19,7 +19,7 @@ SOURCES += \
         run_algorithm.cpp \
         set_solution.cpp \
         solution.cpp \
-        speaii.cpp
+        spea2.cpp
 
 HEADERS += \
     common_basic.h \
@@ -35,7 +35,7 @@ HEADERS += \
     run_algorithm.h \
     set_solution.h \
     solution.h \
-    speaii.h
+    spea2.h
 
 # INCLUDEPATH += $$PWD/../gurobi702/linux64/include
 # INCLUDEPATH += /opt/gurobi752/linux64/include

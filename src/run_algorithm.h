@@ -9,7 +9,7 @@
 #include "nsgaii.h"
 #include "mono_solution.h"
 #include "math_model.h"
-#include "speaii.h"
+#include "spea2.h"
 #include "moga.h"
 #include "metric.h"
 #include "nsgai.h"
@@ -34,7 +34,7 @@ void Discretize(unsigned factor);
 
 void RunAlgorithmNSGAII(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 void RunAlgorithmExact(algorithm_data alg_data, vector<Solution*> &non_dominated_set);
-void RunAlgorithmSPEAII(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
+void RunAlgorithmSPEA2(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 void RunAlgorithmMOGA(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 void RunAlgorithmNSGAI(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 

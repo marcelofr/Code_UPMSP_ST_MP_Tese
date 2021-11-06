@@ -474,7 +474,7 @@ void MutationChangeH(GASolution &individual)
     individual.ChangeHJob(machine, pos_job, add_h);
 }
 
-void PopulationAddIndividual(vector<GASolution*> &population, GASolution *individual)
+bool PopulationAddIndividual(vector<GASolution*> &population, GASolution *individual)
 {
     bool add = true;
 
@@ -489,8 +489,10 @@ void PopulationAddIndividual(vector<GASolution*> &population, GASolution *indivi
     }
 
     if(add){
-        population.push_back(individual);
+            population.push_back(individual);
     }
+
+    return add;
 }
 
 /*

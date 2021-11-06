@@ -1,12 +1,12 @@
-#include "speaii.h"
+#include "spea2.h"
 
 
-void spea_ii(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1)
+void spea2(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1)
 {
 
     //Arquivo externo vazio
     vector<GASolution*> a, new_a, new_p;
-    vector<GASolution*> m;
+    vector<GASolution*> parents;
 
     t1->stop();
 
@@ -23,14 +23,14 @@ void spea_ii(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1)
 
         //m <- new_a
         //copy(new_a.begin(), new_a.end(),back_inserter(m));
-        BinaryTournamentSelection(new_a, m, alg_data.param.u_population_size);
+        BinaryTournamentSelection(new_a, parents, alg_data.param.u_population_size);
         //copy(p.begin(), p.end(),back_inserter(m));*/
 
         //Criar um população Q_{t+1} de tamanho N
-        Crossover(m, new_p, alg_data.param.u_population_size);
+        Crossover(parents, new_p, alg_data.param.u_population_size);
         /*m.clear();
         //copy(new_p.begin(), new_p.end(),back_inserter(m));*/
-        Mutation(m, new_p, alg_data.param.u_prob_mutation);
+        Mutation(parents, new_p, alg_data.param.u_prob_mutation);
 
         //t = t+1
         //P = newP;
@@ -71,7 +71,7 @@ void FitnessAssignment(vector<GASolution *> &p, vector<GASolution *> &a){
     int size, k;
     vector<GASolution *> all;
 
-    //Remover duplicidade
+    /*//Remover duplicidade
     for (auto &it_a: a) {
         for (auto it_p = p.begin(); it_p != p.end();) {
             if(it_a->makeSpan == (*it_p)->makeSpan
@@ -86,7 +86,26 @@ void FitnessAssignment(vector<GASolution *> &p, vector<GASolution *> &a){
     }
 
     copy(p.begin(), p.end(), back_inserter(all));
-    copy(a.begin(), a.end(), back_inserter(all));
+    copy(a.begin(), a.end(), back_inserter(all));*/
+
+
+    all.clear();
+
+    for (auto &it_p: p) {
+        PopulationAddIndividual(all, it_p);
+    }
+
+    //for (auto &it_a: a) {
+    for(auto it_a=a.begin();it_a != a.end();){
+        if(!PopulationAddIndividual(all, *it_a)){
+            delete (GASolution *)*it_a;
+            it_a = a.erase(it_a);
+        }
+        else{
+            it_a++;
+        }
+
+    }
 
     size = all.size();
 
@@ -155,16 +174,16 @@ void EnvironmentalSelection(vector<GASolution *> &new_a, vector<GASolution *> &p
         if(new_a.size() >= population_size)
             break;
         if(it->fitness <= 1)
-            new_a.push_back(new GASolution(*it));
+            new_a.push_back(it);
     }
 
     //Copiar as soluções não-dominadas da população (p) para o novo arquivo (new_a)
     //As soluções não-dominadas tem fitness menor que 1
-    for (auto it : p) {
+    for (auto &it : p) {
         if(new_a.size() >= population_size)
             break;
         if(it->fitness <= 1)
-            new_a.push_back(new GASolution(*it));
+            new_a.push_back(it);
     }
 
 
@@ -178,7 +197,7 @@ void EnvironmentalSelection(vector<GASolution *> &new_a, vector<GASolution *> &p
     if(size > population_size){
         SortByFitness(new_a);
         while (new_a.size() > population_size) {
-            delete new_a.back();
+            //delete new_a.back();
             new_a.pop_back();
         }
     }
@@ -197,29 +216,39 @@ void EnvironmentalSelection(vector<GASolution *> &new_a, vector<GASolution *> &p
         SortByFitness(temp);
         unsigned i=0;
         while (new_a.size() < population_size) {
-            new_a.push_back(new GASolution(*temp[i]));
+            new_a.push_back(temp[i]);
             i++;
         }
     }
 
-    for (auto it : a) {
-        delete it;
+    vector<GASolution *> temp2;
+
+    for (auto &it_new_a : new_a) {
+        temp2.push_back(it_new_a);
     }
+
+    for (auto &it_temp : temp) {
+        if(PopulationAddIndividual(temp2, it_temp))
+            delete it_temp;
+    }
+
     a.clear();
-    for (auto it : p) {
-        delete it;
-    }
     p.clear();
     temp.clear();
+    temp2.clear();
 
 }
 
 void BinaryTournamentSelection(vector<GASolution *> p, vector<GASolution *> &parents, int population_size){
 
-    parents.clear();
     int x, y, size_a;
 
     size_a = p.size();
+
+    for (auto it_parents : parents) {
+        delete it_parents;
+    }
+    parents.clear();
 
     for (int i = 0; i < population_size; i++) {
         x = random()%size_a;

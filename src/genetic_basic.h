@@ -12,7 +12,7 @@
 //#define PROBABILITY_MUTATION 5
 
 void GenerateInitialPopulation(vector<GASolution*> &population, unsigned tam_population);
-void PopulationAddIndividual(vector<GASolution*> &population, GASolution *individual);
+bool PopulationAddIndividual(vector<GASolution*> &population, GASolution *individual);
 void PrintPopulation(vector<GASolution*> &population);
 void Crossover(vector<GASolution*> &population, vector<GASolution*> &new_population, unsigned population_size);
 void Mutation(vector<GASolution*> &population, vector<GASolution*> &new_population, unsigned prob_mutation);

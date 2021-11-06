@@ -11,8 +11,8 @@
 #include <math.h>
 #include <iostream>
 
-#define RELEASE
-//#define DEBUG
+//#define RELEASE
+#define DEBUG
 //#define IRACE
 
 

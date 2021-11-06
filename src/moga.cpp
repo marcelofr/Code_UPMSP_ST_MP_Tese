@@ -26,6 +26,12 @@ void moga(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1){
         Crossover(parents, offspring, alg_data.param.u_population_size);
         Mutation(parents, offspring, alg_data.param.u_prob_mutation);
 
+        //Apagar aqui pra não mudar o método so SPEA
+        for (auto &it_parents : parents) {
+            delete (GASolution*)it_parents;
+        }
+        parents.clear();
+
         Union(p, offspring);
 
         //Registar a contagem do tempo
@@ -46,7 +52,7 @@ void Selection(vector<GASolution *> &p, unsigned population_size){
     if(size > population_size){
         SortByFitness(p);
         while (p.size() > population_size) {
-            delete p.back();
+            delete (GASolution*)p.back();
             p.pop_back();
         }
     }
@@ -56,8 +62,11 @@ void Selection(vector<GASolution *> &p, unsigned population_size){
 void Union(vector<GASolution *> &a, vector<GASolution *> &b){
 
 
-    for (auto it_b : b) {
-        PopulationAddIndividual(a, it_b);
+    bool add;
+    for (auto &it_b : b) {
+        add = PopulationAddIndividual(a, it_b);
+        if(!add)
+            delete (GASolution *)it_b;
     }
 
     b.clear();

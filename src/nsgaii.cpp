@@ -1,6 +1,6 @@
 #include "nsgaii.h"
 
-void nsga_ii(algorithm_data alg_data, vector<GASolution*> &P, Timer *t1){
+void nsgaii(algorithm_data alg_data, vector<GASolution*> &P, Timer *t1){
 
     vector<GASolution*> Q, R;
     vector<vector<GASolution*>> F;

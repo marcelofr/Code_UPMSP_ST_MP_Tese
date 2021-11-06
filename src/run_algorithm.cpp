@@ -35,7 +35,7 @@ void RunAlgorithm(algorithm_data alg_data){
         RunAlgorithmExact(alg_data, nd_set_solution);
     }
     else if(alg_data.param.algorithm_name == "SPEA2"){
-        RunAlgorithmSPEAII(alg_data, nd_set_solution, t1);
+        RunAlgorithmSPEA2(alg_data, nd_set_solution, t1);
     }
     else if(alg_data.param.algorithm_name == "MOGA"){
         RunAlgorithmMOGA(alg_data, nd_set_solution, t1);
@@ -101,7 +101,7 @@ void RunAlgorithmNSGAII(algorithm_data alg_data, vector<Solution*> &non_dominate
     #endif
 
     //alg_data.time_limit=0;
-    nsga_ii(alg_data, non_dominated_set_ga->set_solution, t1);
+    nsgaii(alg_data, non_dominated_set_ga->set_solution, t1);
 
     SortByMakespan(non_dominated_set_ga->set_solution);
 
@@ -119,7 +119,7 @@ void RunAlgorithmNSGAII(algorithm_data alg_data, vector<Solution*> &non_dominate
     }
 }
 
-void RunAlgorithmSPEAII(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
+void RunAlgorithmSPEA2(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
 
 
     NDSetSolution<GASolution *> *non_dominated_set_ga = new NDSetSolution<GASolution *>();
@@ -128,15 +128,15 @@ void RunAlgorithmSPEAII(algorithm_data alg_data, vector<Solution*> &non_dominate
     non_dominated_set_ga->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
 
     #ifdef DEBUG
-        cout << "===========Inicio População Inicial===========" << endl;
+        cout << "===========Inicio População Inicial SPEA2===========" << endl;
         PrintPopulation(non_dominated_set_ga->set_solution);
         //non_dominated_set_ga->PrintSetSolution();
-        cout << "===========Fim População Inicial===========" << endl << endl;
+        cout << "===========Fim População Inicial SPEA2===========" << endl << endl;
         //exit(0);
     #endif
 
     //alg_data.time_limit=0;
-    spea_ii(alg_data, non_dominated_set_ga->set_solution, t1);
+    spea2(alg_data, non_dominated_set_ga->set_solution, t1);
 
     for(auto it:non_dominated_set_ga->set_solution){
         nds->AddSolution(it);
@@ -145,11 +145,11 @@ void RunAlgorithmSPEAII(algorithm_data alg_data, vector<Solution*> &non_dominate
     SortByMakespan(nds->set_solution);
 
     #ifdef DEBUG
-        cout << "===========Inicio SPEAII===========" << endl;
+        cout << "===========Inicio SPEA2===========" << endl;
         PrintPopulation(nds->set_solution);
         //non_dominated_set_ga->PrintSetSolution();
         t1->printElapsedTimeInMilliSec();
-        cout << "===========Fim SPEAII===========" << endl;
+        cout << "===========Fim SPEA2===========" << endl;
     #endif
 
     non_dominated_set.clear();
@@ -170,10 +170,10 @@ void RunAlgorithmMOGA(algorithm_data alg_data, vector<Solution*> &non_dominated_
     non_dominated_set_ga->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
 
     #ifdef DEBUG
-        cout << "===========Inicio População Inicial===========" << endl;
+        cout << "===========Inicio População Inicial MOGA===========" << endl;
         PrintPopulation(non_dominated_set_ga->set_solution);
         //non_dominated_set_ga->PrintSetSolution();
-        cout << "===========Fim População Inicial===========" << endl << endl;
+        cout << "===========Fim População Inicial MOGA===========" << endl << endl;
         //exit(0);
     #endif
 
@@ -187,11 +187,11 @@ void RunAlgorithmMOGA(algorithm_data alg_data, vector<Solution*> &non_dominated_
     SortByMakespan(nds->set_solution);
 
     #ifdef DEBUG
-        cout << "===========Inicio SPEAII===========" << endl;
+        cout << "===========Inicio MOGA===========" << endl;
         PrintPopulation(nds->set_solution);
         //non_dominated_set_ga->PrintSetSolution();
         t1->printElapsedTimeInMilliSec();
-        cout << "===========Fim SPEAII===========" << endl;
+        cout << "===========Fim MOGA===========" << endl;
     #endif
 
     non_dominated_set.clear();
