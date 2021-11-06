@@ -69,35 +69,10 @@ void spea2(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1)
 void FitnessAssignment(vector<GASolution *> &p, vector<GASolution *> &a){
 
     int size, k;
-    vector<GASolution *> all;
-
-    /*//Remover duplicidade
-    for (auto &it_a: a) {
-        for (auto it_p = p.begin(); it_p != p.end();) {
-            if(it_a->makeSpan == (*it_p)->makeSpan
-                    && abs(it_a->TEC - (*it_p)->TEC) < EPS){
-                delete *it_p;
-                it_p = p.erase(it_p);
-            }
-            else{
-                ++it_p;
-            }
-        }
-    }
-
-    copy(p.begin(), p.end(), back_inserter(all));
-    copy(a.begin(), a.end(), back_inserter(all));*/
-
-
-    all.clear();
-
-    for (auto &it_a: a) {
-        PopulationAddIndividual(all, it_a);
-    }
 
     //for (auto &it_a: a) {
     for(auto it_p=p.begin();it_p != p.end();){
-        if(!PopulationAddIndividual(all, *it_p)){
+        if(!PopulationAddIndividual(a, *it_p)){
             delete (GASolution *)*it_p;
             it_p = p.erase(it_p);
         }
@@ -106,21 +81,21 @@ void FitnessAssignment(vector<GASolution *> &p, vector<GASolution *> &a){
         }
     }
 
-    size = all.size();
+    size = a.size();
 
     vector<double> distance(size);
 
     //Calcular o strengthValue
     for (int i = 0; i < size; i++) {
-        all[i]->strength_value = 0;
-        all[i]->set_solution_dominated.clear();
+        a[i]->strength_value = 0;
+        a[i]->set_solution_dominated.clear();
         for (int j = 0; j < size; j++) {
             if(i != j){
                 //if(set[i].Dominate(set[j])){
-                if(*all[i] < *all[j]){
+                if(*a[i] < *a[j]){
                 //if(*all[j] <= *all[i]){
-                    all[i]->strength_value++;
-                    all[i]->set_solution_dominated.push_back(all[j]);
+                    a[i]->strength_value++;
+                    a[i]->set_solution_dominated.push_back(a[j]);
                 }
             }
         }
@@ -128,36 +103,38 @@ void FitnessAssignment(vector<GASolution *> &p, vector<GASolution *> &a){
 
     //Calcular o rawFitness
     for (int i = 0; i < size; i++) {
-        all[i]->raw_fitness = 0;
+        a[i]->raw_fitness = 0;
         for (int j = 0; j < size; j++) {
             if(i != j){
                 //if(set[j].Dominate(set[i])){
-                if(*all[j] < *all[i]){
+                if(*a[j] < *a[i]){
                 //if(*all[i] < *all[j]){
-                    all[i]->raw_fitness += all[j]->strength_value;
+                    a[i]->raw_fitness += a[j]->strength_value;
                 }
             }
         }
     }
 
-    k = sqrt(all.size());
+    k = sqrt(a.size());
 
     //Calcular o density
     for (int i = 0; i < size; i++) {
         distance[i] = 0;
         for (int j = 0; j < size; j++) {            
             if(i != j){
-                distance[j] = all[i]->CalcEuclideanDistance(all[j]);
+                distance[j] = a[i]->CalcEuclideanDistance(a[j]);
             }
             else{
                 distance[j] = INT_MAX;
             }
         }
         sort(distance.begin(), distance.end());
-        all[i]->density = double(1)/double(distance[k] + 2);
+        a[i]->density = double(1)/double(distance[k] + 2);
         //Calcular o fitness
-        all[i]->fitness = all[i]->raw_fitness + all[i]->density;
+        a[i]->fitness = a[i]->raw_fitness + a[i]->density;
     }
+
+    p.clear();
 }
 
 void EnvironmentalSelection(vector<GASolution *> &new_a, vector<GASolution *> &p,
