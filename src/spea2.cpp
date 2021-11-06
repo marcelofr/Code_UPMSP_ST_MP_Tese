@@ -91,20 +91,19 @@ void FitnessAssignment(vector<GASolution *> &p, vector<GASolution *> &a){
 
     all.clear();
 
-    for (auto &it_p: p) {
-        PopulationAddIndividual(all, it_p);
+    for (auto &it_a: a) {
+        PopulationAddIndividual(all, it_a);
     }
 
     //for (auto &it_a: a) {
-    for(auto it_a=a.begin();it_a != a.end();){
-        if(!PopulationAddIndividual(all, *it_a)){
-            delete (GASolution *)*it_a;
-            it_a = a.erase(it_a);
+    for(auto it_p=p.begin();it_p != p.end();){
+        if(!PopulationAddIndividual(all, *it_p)){
+            delete (GASolution *)*it_p;
+            it_p = p.erase(it_p);
         }
         else{
-            it_a++;
+            it_p++;
         }
-
     }
 
     size = all.size();
