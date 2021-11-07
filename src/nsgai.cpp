@@ -5,112 +5,162 @@ void nsga_i(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1){
     t1->stop();
 
     pair<double,double> w;
-    vector<GASolution*> new_p;
+    vector<vector<GASolution*>> front;
+    vector<GASolution*> parents, offspring;
     int random;
-    vector<vector<GASolution*>> F;
+    unsigned i=0;
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-
-        ComputeFitness(p, F);
-        /*ComputeFitness(new_p, w);
-
-        Selection(p, new_p, alg_data.param.u_population_size);*/
-
-        Crossover(p, new_p, alg_data.param.u_population_size);
-        Mutation(p, new_p, alg_data.param.u_prob_mutation);
 
         random = rand()%100;
         w.first = double(random)/double(100);
         w.second = double(100-random)/double(100);
 
+        NonDominatedSort(front, p);
 
+        ComputeFitness(front, p.size());
 
+        Selection(front, p, alg_data.param.u_population_size);
+
+        BinaryTournamentSelection(p, parents, alg_data.param.u_population_size);
+
+        Crossover(parents, offspring, alg_data.param.u_population_size);
+        Mutation(parents, offspring, alg_data.param.u_prob_mutation);
+
+        Union(p, offspring);
 
         //Registar a contagem do tempo
         t1->stop();
+
+        i++;
 
     }
 
 }
 
-void ComputeFitness(vector<GASolution *> &p, vector<vector<GASolution*>> &F){
+/*
+ * Método para formar cada frente F[i] a partir da população R
+ */
+void NonDominatedSort(vector<vector<GASolution*> > &front, vector<GASolution*> &pop)
+{
 
-    vector<GASolution*> temp;
+    //Conjunto auxiliar
+    vector<GASolution*> pop_aux;
+    pop_aux.clear();
 
-    while (p.size() > 0) {
+    //Gerar cada frente F[i]
+    for(auto p = pop.begin(); p != pop.end(); ++p){
 
-        //Calcular o strengthValue
-        for (unsigned i = 0; i < p.size(); i++) {
-            p[i]->strength_value = 0;
-            //p[i]->set_solution_dominated.clear();
-            for (unsigned j = 0; j < p.size(); j++) {
-                if(i != j){
-                    //if(set[i].Dominate(set[j])){
-                    if(*p[j] < *p[i]){
-                    //if(*all[j] <= *all[i]){
-                        p[i]->strength_value++;
-                        //p[i]->set_solution_dominated.push_back(p[j]);
-                    }
+        //Zerar o contador de soluções não-dominadas por p
+        (*p)->counter_solution_non_dominated = 0;
+        for(auto q = pop.begin(); q != pop.end(); ++q){
+
+            //Se p e q são soluções diferentes
+            if(!((**p) == (**q))){
+                if ((**q) < (**p)){
+                    //Incrementtar o contador de soluções não-dominadas por p
+                    (*p)->counter_solution_non_dominated++;
                 }
             }
         }
-
-        temp.clear();
-        //for (auto &it_p : p) {
-        for (auto it_p=p.begin();it_p!=p.end() ; ) {
-            if((*it_p)->strength_value == 0){
-                temp.push_back(*it_p);
-                it_p=p.erase(it_p);
-            }
-            else{
-                it_p++;;
-            }
+        //Se p não é dominado por nenhuma outra solução
+        if((*p)->counter_solution_non_dominated == 0){
+            (*p)->rank = 0;
+            //Adicionar p na primeira frente
+            pop_aux.push_back(*p);
+            //F[0].push_back(*p);
         }
-        F.push_back(temp);
     }
 
+    //Formar a primeira frente F[0]
+    front.push_back(pop_aux);
+
+    for(unsigned i=1;i<pop.size();i++){
+        pop_aux.clear();
+        for(auto p = pop.begin(); p != pop.end(); ++p){
+            if((*p)->counter_solution_non_dominated == i){
+                (*p)->rank = i;
+                //Adicionar p na primeira frente
+                pop_aux.push_back(*p);
+                //F[0].push_back(*p);
+            }
+        }
+        if(pop_aux.size()>0)
+            front.push_back(pop_aux);
+    }
+}
 
 
-    /*//Calcular o rawFitness
-    for (int i = 0; i < size; i++) {
-        p[i]->raw_fitness = 0;
-        for (int j = 0; j < size; j++) {
-            if(i != j){
-                //if(set[j].Dominate(set[i])){
-                if(*p[j] < *p[i]){
-                //if(*all[i] < *all[j]){
-                    p[i]->raw_fitness += p[j]->strength_value;
+void ComputeFitness(vector<vector<GASolution*>> &front, unsigned population_size){
+
+
+    //pair<double,double> d1, d2;
+    double m_max, t_max, m_min, t_min;
+    m_max = m_min = front[0][0]->makeSpan;
+    t_max = t_min = front[0][0]->TEC;
+    for(unsigned i = 0; i<front[0].size(); i++){
+        front[0][i]->fitness = population_size;
+        if(front[0][i]->makeSpan < m_min)
+            m_min = front[0][i]->makeSpan;
+        if(front[0][i]->makeSpan > m_max)
+            m_max = front[0][i]->makeSpan;
+        if(front[0][i]->TEC < t_min)
+            t_min = front[0][i]->TEC;
+        if(front[0][i]->TEC > t_max)
+            t_max = front[0][i]->TEC;
+    }
+
+    double distance;
+    double sh;
+    double a, b;
+
+
+    for (auto &it_front : front) {
+
+        for (unsigned i = 0; i < it_front.size(); i++) {
+            //d1.first = it_front[i]->makeSpan;
+            //d1.second = it_front[i]->TEC;
+            sh=0;
+            for(unsigned j = i+1; j<it_front.size(); j++){
+                //d2.first = it_front[j]->makeSpan;
+                //d2.second = it_front[j]->TEC;
+                a = double(int(it_front[i]->makeSpan - it_front[j]->makeSpan))/double(m_max - m_min);
+                b = double(it_front[i]->TEC-it_front[j]->TEC)/double(t_max - t_min);
+                distance = double(sqrt(pow(a, 2) + pow(b, 2)));
+                if(distance < SHARE){
+                    sh += 1-pow(double(distance)/double(SHARE),2);
                 }
             }
+            it_front[i]->fitness = double(it_front[i]->fitness)/sh;
+        }
+
+    }
+
+}
+
+void Selection(vector<vector<GASolution*>> &front, vector<GASolution*> &pop, unsigned population_size){
+
+
+    pop.clear();
+
+    unsigned i,j;
+
+    //for (auto &it_i : front) {
+    for(i=0; i<front.size();i++){
+
+        //for (auto &it_ij : it_i) {
+        for(j=0; j<front[i].size();j++){
+            if(pop.size() < population_size)
+                pop.push_back(front[i][j]);
+            else
+                delete front[i][j];
         }
     }
 
-    unsigned max_makespan, min_makespan;
-    double max_tec, min_tec;
-    max_makespan = max_tec = 0;
-    min_makespan = min_tec = UINT_MAX;
-
-    for (auto it : p) {
-        if(it->makeSpan < min_makespan)
-            min_makespan = it->makeSpan;
-        else if(it->makeSpan > max_makespan){
-            max_makespan = it->makeSpan;
-        }
-
-        if(it->TEC < min_tec)
-            min_tec = it->TEC;
-        else if(it->TEC > max_tec){
-            max_tec = it->TEC;
-        }
+    for(unsigned k = 0; k < front.size(); k++){
+        front[k].clear();
     }
-
-    //Calcular o fitness
-    for (int i = 0; i < size; i++) {
-        //Calcular o fitness
-        p[i]->fitness = p[i]->raw_fitness
-                + double((p[i]->makeSpan-min_makespan)/(max_makespan-min_makespan))*w.first
-                + double((p[i]->TEC-min_tec)/(max_tec-min_tec))*w.second ;
-    }*/
+    front.clear();
 
 }
