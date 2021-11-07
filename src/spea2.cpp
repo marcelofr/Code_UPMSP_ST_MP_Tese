@@ -16,10 +16,10 @@ void spea2(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1)
 
 
         //Atribuir valor de aptidão para o conjunto P e A
-        FitnessAssignment(p, a);
+        FitnessAssignment(p, a, new_a);
 
         //Selecionar N indivíduos que formarão o novo conjunto externo
-        EnvironmentalSelection(new_a, p, a, alg_data.param.u_population_size);
+        EnvironmentalSelection(new_a, alg_data.param.u_population_size);
 
         //m <- new_a
         //copy(new_a.begin(), new_a.end(),back_inserter(m));
@@ -40,11 +40,15 @@ void spea2(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1)
             p.push_back(it);
         }
 
+        new_p.clear();
+
         //archive = newArchice;
         //copy(new_a.begin(), new_a.end(),back_inserter(a));
         for (auto it : new_a) {
             a.push_back(it);
         }
+
+        new_a.clear();
 
         //Registar a contagem do tempo
         t1->stop();
@@ -66,36 +70,43 @@ void spea2(algorithm_data alg_data, vector<GASolution*> &p, Timer *t1)
 
 }
 
-void FitnessAssignment(vector<GASolution *> &p, vector<GASolution *> &a){
+void FitnessAssignment(vector<GASolution *> &p, vector<GASolution *> &a, vector<GASolution *> &new_a){
 
     int size, k;
 
     //for (auto &it_a: a) {
-    for(auto it_p=p.begin();it_p != p.end();){
-        if(!PopulationAddIndividual(a, *it_p)){
-            delete (GASolution *)*it_p;
-            it_p = p.erase(it_p);
-        }
-        else{
-            it_p++;
+    for(auto &it_a : a){
+        new_a.push_back(it_a);
+    }
+
+    vector<GASolution *> temp;
+
+    for(auto &it_p : p){
+        if(!PopulationAddIndividual(new_a, it_p)){
+            temp.push_back(it_p);
         }
     }
 
-    size = a.size();
+    for (auto it_t : temp) {
+        delete (GASolution *)it_t;
+    }
+    temp.clear();
+
+    size = new_a.size();
 
     vector<double> distance(size);
 
     //Calcular o strengthValue
     for (int i = 0; i < size; i++) {
-        a[i]->strength_value = 0;
-        a[i]->set_solution_dominated.clear();
+        new_a[i]->strength_value = 0;
+        new_a[i]->set_solution_dominated.clear();
         for (int j = 0; j < size; j++) {
             if(i != j){
                 //if(set[i].Dominate(set[j])){
-                if(*a[i] < *a[j]){
+                if(*new_a[i] < *new_a[j]){
                 //if(*all[j] <= *all[i]){
-                    a[i]->strength_value++;
-                    a[i]->set_solution_dominated.push_back(a[j]);
+                    new_a[i]->strength_value++;
+                    new_a[i]->set_solution_dominated.push_back(new_a[j]);
                 }
             }
         }
@@ -103,69 +114,46 @@ void FitnessAssignment(vector<GASolution *> &p, vector<GASolution *> &a){
 
     //Calcular o rawFitness
     for (int i = 0; i < size; i++) {
-        a[i]->raw_fitness = 0;
+        new_a[i]->raw_fitness = 0;
         for (int j = 0; j < size; j++) {
             if(i != j){
                 //if(set[j].Dominate(set[i])){
-                if(*a[j] < *a[i]){
+                if(*new_a[j] < *new_a[i]){
                 //if(*all[i] < *all[j]){
-                    a[i]->raw_fitness += a[j]->strength_value;
+                    new_a[i]->raw_fitness += new_a[j]->strength_value;
                 }
             }
         }
     }
 
-    k = sqrt(a.size());
+    k = sqrt(new_a.size());
 
     //Calcular o density
     for (int i = 0; i < size; i++) {
         distance[i] = 0;
         for (int j = 0; j < size; j++) {            
             if(i != j){
-                distance[j] = a[i]->CalcEuclideanDistance(a[j]);
+                distance[j] = new_a[i]->CalcEuclideanDistance(new_a[j]);
             }
             else{
                 distance[j] = INT_MAX;
             }
         }
         sort(distance.begin(), distance.end());
-        a[i]->density = double(1)/double(distance[k] + 2);
+        new_a[i]->density = double(1)/double(distance[k] + 2);
         //Calcular o fitness
-        a[i]->fitness = a[i]->raw_fitness + a[i]->density;
+        new_a[i]->fitness = new_a[i]->raw_fitness + new_a[i]->density;
     }
 
     p.clear();
+    a.clear();
 }
 
-void EnvironmentalSelection(vector<GASolution *> &new_a, vector<GASolution *> &p,
-                            vector<GASolution *> &a, unsigned population_size){
-
-
-    //Apagar todos os indivíduos do novo arquivo (new_a)
-    new_a.clear();
-
-    //Copiar as soluções não-dominadas do arquivo (a) no novo arquivo (new_a)
-    //As soluções não-dominadas tem fitness menor que 1
-    for (const auto &it : a) {
-        if(new_a.size() >= population_size)
-            break;
-        if(it->fitness <= 1)
-            new_a.push_back(it);
-    }
-
-    //Copiar as soluções não-dominadas da população (p) para o novo arquivo (new_a)
-    //As soluções não-dominadas tem fitness menor que 1
-    for (auto &it : p) {
-        if(new_a.size() >= population_size)
-            break;
-        if(it->fitness <= 1)
-            new_a.push_back(it);
-    }
+void EnvironmentalSelection(vector<GASolution *> &new_a, unsigned population_size){
 
 
     //Adequar o tamanho do novo arquivo
     unsigned size = new_a.size();
-    vector<GASolution *> temp;
 
     //Se o novo arquivo (new_a) é maior que population_size
     //Então, reduzir o tamanho do novo arquivo (new_a)
@@ -173,45 +161,10 @@ void EnvironmentalSelection(vector<GASolution *> &new_a, vector<GASolution *> &p
     if(size > population_size){
         SortByFitness(new_a);
         while (new_a.size() > population_size) {
-            //delete new_a.back();
+            delete new_a.back();
             new_a.pop_back();
         }
     }
-    else if (size < population_size){
-        //Senão, aumentar o tamanho do novo arquivo (new_a)
-        //Adicionar indivíduos dominados com maior aptidão
-        for (auto it : p) {
-            if(it->fitness > 1)
-                temp.push_back(it);
-        }
-        for (auto it : a) {
-            if(it->fitness > 1)
-                temp.push_back(it);
-        }
-        //Indivíduos com menor fitness tem melhor aptidão
-        SortByFitness(temp);
-        unsigned i=0;
-        while (new_a.size() < population_size) {
-            new_a.push_back(temp[i]);
-            i++;
-        }
-    }
-
-    vector<GASolution *> temp2;
-
-    for (auto &it_new_a : new_a) {
-        temp2.push_back(it_new_a);
-    }
-
-    for (auto &it_temp : temp) {
-        if(PopulationAddIndividual(temp2, it_temp))
-            delete it_temp;
-    }
-
-    a.clear();
-    p.clear();
-    temp.clear();
-    temp2.clear();
 
 }
 
@@ -221,9 +174,9 @@ void BinaryTournamentSelection(vector<GASolution *> p, vector<GASolution *> &par
 
     size_a = p.size();
 
-    for (auto it_parents : parents) {
+    /*for (auto it_parents : parents) {
         delete it_parents;
-    }
+    }*/
     parents.clear();
 
     for (int i = 0; i < population_size; i++) {
@@ -231,10 +184,12 @@ void BinaryTournamentSelection(vector<GASolution *> p, vector<GASolution *> &par
         y = random()%size_a;
         //if(*a_new[x] < *a_new[y]){
         if(p[x]->fitness < p[y]->fitness){
-            parents.push_back(new GASolution(*p[x]));
+            //parents.push_back(new GASolution(*p[x]));
+            parents.push_back(p[x]);
         }
         else{
-            parents.push_back(new GASolution(*p[y]));
+            //parents.push_back(new GASolution(*p[y]));
+            parents.push_back(p[y]);
         }
     }
 
