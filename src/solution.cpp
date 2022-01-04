@@ -2063,3 +2063,5 @@ bool CompareTEC(Solution * l, Solution * r) //(2)
 }
 
 
+double Z_STAR::makespan = 0;
+double Z_STAR::TEC = 0;

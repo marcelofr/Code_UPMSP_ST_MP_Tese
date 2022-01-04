@@ -6,14 +6,17 @@ QMAKE_CXXFLAGS += -std=gnu++1z
 
 SOURCES += \
         common_basic.cpp \
+        decomposition.cpp \
         gasolution.cpp \
         genetic_basic.cpp \
         instance.cpp \
+        localsearch.cpp \
+        localsearch_basic.cpp \
         main.cpp \
         math_model.cpp \
         metric.cpp \
         moga.cpp \
-        mono_solution.cpp \
+        monosolution.cpp \
         nsgai.cpp \
         nsgaii.cpp \
         run_algorithm.cpp \
@@ -23,13 +26,16 @@ SOURCES += \
 
 HEADERS += \
     common_basic.h \
+    decomposition.h \
     gasolution.h \
     genetic_basic.h \
     instance.h \
+    localsearch.h \
+    localsearch_basic.h \
     math_model.h \
     metric.h \
     moga.h \
-    mono_solution.h \
+    monosolution.h \
     nsgai.h \
     nsgaii.h \
     run_algorithm.h \

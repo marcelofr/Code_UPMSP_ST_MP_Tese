@@ -5,14 +5,17 @@
 #include <map>
 //#include "../common/instance.h"
 #include "common_basic.h"
-#include "set_solution.h"
+//#include "set_solution.h"
 #include "nsgaii.h"
-#include "mono_solution.h"
+#include "monosolution.h"
 #include "math_model.h"
 #include "spea2.h"
 #include "moga.h"
 #include "metric.h"
 #include "nsgai.h"
+//#include "localsearch_basic.h"
+#include "localsearch.h"
+#include "decomposition.h"
 
 using namespace std;
 
@@ -37,5 +40,10 @@ void RunAlgorithmExact(algorithm_data alg_data, vector<Solution*> &non_dominated
 void RunAlgorithmSPEA2(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 void RunAlgorithmMOGA(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 void RunAlgorithmNSGAI(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
+
+//void RunAlgorithmMOVNS(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
+//void RunAlgorithmMOVNSArroyo(algorithm_data alg_data, vector<Solution*> &nd_set_solution, Timer *t1);
+//void RunAlgorithmMOVNSEduardo(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
+void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 
 #endif // RUN_ALGORITHM_H

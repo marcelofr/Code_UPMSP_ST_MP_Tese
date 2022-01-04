@@ -136,5 +136,11 @@ bool CompareMakespan(Solution * l, Solution * r);
 bool CompareTEC(Solution * l, Solution * r);
 //void SortByMakespanSolution(vector<Solution*> &set_solution);
 
+class Z_STAR
+{
+public:
+    static double makespan;
+    static double TEC;
+};
 
 #endif // SOLUTION_H

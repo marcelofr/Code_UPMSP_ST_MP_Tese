@@ -1,10 +1,9 @@
-#ifndef MONO_SOLUTION_H
-#define MONO_SOLUTION_H
+#ifndef MONOSOLUTION_H
+#define MONOSOLUTION_H
 
+#include "localsearch_basic.h"
 
-#include "solution.h"
-
-class MonoSolution : public Solution{
+class MonoSolution : public LSSolution{
 public:
     double objective_funtion;
     pair<double, double> weights;
@@ -25,15 +24,19 @@ public:
 
     void CalculeMonoObjective();
 
-    void GenerateGreedySolutionWeigth();
+    void CalculeMonoObjectiveTchebycheff();
+
+    void GenerateGreedySolutionWeigth()
+    ;
 
     unsigned FindJobBestPosMacWeigth(unsigned new_job, unsigned machine,
                                      double &smaller_weigth_obj_machine,
-                                     unsigned &diff_time_job);
+                                     unsigned &diff_time_job)
+    ;
 
-    void GreedyChoiceWeigth(unsigned new_job, unsigned mode_op, unsigned &best_machine, unsigned &best_position, unsigned &diff_time, double &obj_job);
+    void GreedyChoiceWeigth(unsigned new_job, unsigned mode_op, unsigned &best_machine, unsigned &best_position, unsigned &diff_time, double &obj_job)
+    ;
 
 };
 
-
-#endif // MONO_SOLUTION_H
+#endif // MONOSOLUTION_H

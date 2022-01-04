@@ -43,6 +43,18 @@ void RunAlgorithm(algorithm_data alg_data){
     else if(alg_data.param.algorithm_name == "NSGAI"){
         RunAlgorithmNSGAI(alg_data, nd_set_solution, t1);
     }
+    else if(alg_data.param.algorithm_name == "MOVNS"){
+        //RunAlgorithmMOVNS(alg_data, nd_set_solution, t1);
+    }
+    else if(alg_data.param.algorithm_name == "MOVNS_Arroyo"){
+        //RunAlgorithmMOVNSArroyo(alg_data, nd_set_solution, t1);
+    }
+    /*else if(alg_data.param.algorithm_name == "MOVNS_Eduardo"){
+        RunAlgorithmMOVNSEduardo(alg_data, nd_set_solution, t1);
+    }*/
+    else if(alg_data.param.algorithm_name == "MOVNS_D"){
+        RunAlgorithmMono(alg_data, nd_set_solution, t1);
+    }
 
     t1->stop();
 
@@ -212,10 +224,10 @@ void RunAlgorithmNSGAI(algorithm_data alg_data, vector<Solution*> &non_dominated
     non_dominated_set_ga->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
 
     #ifdef DEBUG
-        cout << "===========Inicio População Inicial===========" << endl;
+        cout << "===========Inicio População Inicial NSGAI===========" << endl;
         PrintPopulation(non_dominated_set_ga->set_solution);
         //non_dominated_set_ga->PrintSetSolution();
-        cout << "===========Fim População Inicial===========" << endl << endl;
+        cout << "===========Fim População Inicial NSGAI===========" << endl << endl;
         //exit(0);
     #endif
 
@@ -229,11 +241,11 @@ void RunAlgorithmNSGAI(algorithm_data alg_data, vector<Solution*> &non_dominated
     SortByMakespan(nds->set_solution);
 
     #ifdef DEBUG
-        cout << "===========Inicio SPEAII===========" << endl;
+        cout << "===========Inicio NSGAI===========" << endl;
         PrintPopulation(nds->set_solution);
         //non_dominated_set_ga->PrintSetSolution();
         t1->printElapsedTimeInMilliSec();
-        cout << "===========Fim SPEAII===========" << endl;
+        cout << "===========Fim NSGAI===========" << endl;
     #endif
 
     non_dominated_set.clear();
@@ -298,6 +310,173 @@ void Discretize(unsigned factor){
     Instance::max_makespan = ceil(double(Instance::max_makespan)
                                   /double(Instance::discretization_factor));
 
+}
+
+//void RunAlgorithmMOVNS(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
+
+//    NDSetSolution<LSSolution *> *non_dominated_set_ls = new NDSetSolution<LSSolution *>();
+
+//    //non_dominated_set_ls->ConstrutiveGreedy();
+//    //non_dominated_set_ls->ConstrutiveRandom(1);
+//    //non_dominated_set_ls->ContrutiveGRASP(0.5, alg_data.param.u_population_size, 1);
+//    non_dominated_set_ls->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+
+//    #ifdef DEBUG
+//        cout << "===========Inicio Solução Inicial===========" << endl;
+//        non_dominated_set_ls->PrintSetSolution();
+//        cout << "===========Fim Solução Inicial===========" << endl << endl;
+//    #endif
+
+
+//    MOVNS(*non_dominated_set_ls, alg_data, t1);
+
+//    #ifdef DEBUG
+//        cout << "===========Inicio MOVNS===========" << endl;
+//        non_dominated_set_ls->PrintSetSolution();
+//        t1->printElapsedTimeInMilliSec();
+//        cout << "===========Fim MOVNS===========" << endl << endl;
+//    #endif
+
+//    non_dominated_set.clear();
+//    for(auto it:non_dominated_set_ls->set_solution){
+//        non_dominated_set.push_back(it);
+//    }
+
+//    delete non_dominated_set_ls;
+//}
+
+//void RunAlgorithmMOVNSArroyo(algorithm_data alg_data, vector<Solution*> &nd_set_solution, Timer *t1){
+
+//    NDSetSolution<LSSolution*> *obj_nd_set_solution = new NDSetSolution<LSSolution*>();
+
+//    //obj_nd_set_solution->ConstrutiveGreedy();
+//    //obj_nd_set_solution->ConstructiveCombinatorialSolution();
+//    //obj_nd_set_solution->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+//    //obj_nd_set_solution->ContrutiveGRASP(0.5, alg_data.param.u_population_size, 1);
+//    //obj_nd_set_solution->ConstrutiveRandom(100);
+//    obj_nd_set_solution->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+
+//    #ifdef DEBUG
+//        cout << "===========Inicio Solução Inicial===========" << endl;
+//        obj_nd_set_solution->PrintSetSolution();
+//        cout << "===========Fim Solução Inicial===========" << endl << endl;
+//    #endif
+
+//    alg_data.qtd_neighbor = QTD_NEIGHBOR;
+
+//    MOVNS_Arroyo(*obj_nd_set_solution, alg_data, t1);
+
+//    #ifdef DEBUG
+//        cout << "===========Inicio MOVNS Arroyo===========" << endl;
+//        SortByMakespanLSSolution(obj_nd_set_solution->set_solution);
+//        obj_nd_set_solution->PrintSetSolution();
+//        t1->printElapsedTimeInMilliSec();
+//        cout << "===========Fim MOVNS Arroyo===========" << endl << endl;
+//    #endif
+
+//    nd_set_solution.clear();
+//    for(auto it:obj_nd_set_solution->set_solution){
+//        nd_set_solution.push_back(it);
+//    }
+
+//    delete obj_nd_set_solution;
+//}
+
+/*void RunAlgorithmMOVNSEduardo(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
+
+    NDSetSolution<LSSolution *> *non_dominated_set_ls = new NDSetSolution<LSSolution *>();
+
+    //non_dominated_set_ls->ContrutiveGRASP(0.5, alg_data.param.u_population_size/2, 1);
+    //non_dominated_set_ls->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+    //non_dominated_set_ls->ConstrutiveGreedy();
+    //non_dominated_set_ls->ConstructiveCombinatorialSolution();
+    non_dominated_set_ls->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+
+    #ifdef DEBUG
+        cout << "===========Inicio Solução Inicial===========" << endl;
+        non_dominated_set_ls->PrintSetSolution();
+        cout << "===========Fim Solução Inicial===========" << endl << endl;
+    #endif
+
+    alg_data.qtd_neighbor = 5;
+    alg_data.max_shake_level = ceil(double(Instance::num_jobs)/double(10));
+
+    MOVNS_Eduardo(*non_dominated_set_ls, alg_data, t1);
+
+    #ifdef DEBUG
+        cout << "===========Inicio MOVNS Eduardo===========" << endl;
+        SortByMakespanLSSolution(non_dominated_set_ls->set_solution);
+        non_dominated_set_ls->PrintSetSolution();
+        t1->printElapsedTimeInMilliSec();
+        cout << "===========Fim MOVNS Eduardo===========" << endl << endl;
+    #endif
+
+    non_dominated_set.clear();
+    for(auto it:non_dominated_set_ls->set_solution){
+        non_dominated_set.push_back(it);
+    }
+
+    delete non_dominated_set_ls;
+}*/
+
+void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
+
+    NDSetSolution<MonoSolution *> *non_dominated_set_ms = new NDSetSolution<MonoSolution *>();
+
+    //non_dominated_set_ms->ContrutiveGRASP(0.5, 4, 0);
+    //non_dominated_set_ms->ConstrutiveGreedyAndRandom(3);
+    //non_dominated_set_ms->ConstrutiveGreedy();
+    //non_dominated_set_ms->ConstructiveCombinatorialSolution();
+    //non_dominated_set_ms->ConstrutiveRandom(10);
+
+    unsigned sz = alg_data.param.u_decomposition_size;
+
+    //Tamanho de cada grupo
+    alg_data.num_group = alg_data.param.u_decomposition_neighboor_size;
+
+    //Quantidade de vizinhanças 5+1
+    alg_data.qtd_neighbor = QTD_NEIGHBOR;
+
+    alg_data.num_weights = sz;
+    non_dominated_set_ms->ConstrutiveGreedyWeight(sz);
+
+    /*non_dominated_set_ms->ConstructiveCombinatorialSolution();
+    alg_data.num_weights = non_dominated_set_ms->set_solution.size();*/
+
+
+    #ifdef DEBUG
+        cout << "===========Inicio Solução Inicial===========" << endl;
+        non_dominated_set_ms->PrintSetSolution();
+        cout << "===========Fim Solução Inicial===========" << endl << endl;
+
+        cout << "Tempo limite: " << alg_data.time_limit << endl;
+    #endif
+
+    //SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
+
+    //SetWeights(*non_dominated_set_ms);
+    MOVNS_D(*non_dominated_set_ms, alg_data, t1);
+
+    NDSetSolution<MonoSolution *> *non_dominated_set_local = new NDSetSolution<MonoSolution *>();
+
+    for(auto it:non_dominated_set_ms->set_solution){
+        non_dominated_set_local->AddSolution(it);
+    }
+
+#ifdef DEBUG
+    cout << "===========Inicio MOVNS/D===========" << endl;
+    t1->stop();
+    non_dominated_set_local->PrintSetSolution();
+    t1->printElapsedTimeInMilliSec();
+    cout << "===========Fim MOVNS/D===========" << endl << endl;
+#endif
+
+    non_dominated_set.clear();
+    for(auto it:non_dominated_set_local->set_solution){
+        non_dominated_set.push_back(it);
+    }
+
+    delete non_dominated_set_ms;
 }
 
 /*
@@ -427,7 +606,7 @@ void HypervolumeMetric(map<string,map<string, map<string, vector<pair<unsigned, 
     for(auto &it_algorithm : sets.begin()->second){
         cout << " " << it_algorithm.first << " ";
     }
-    cout << " Reference point";
+    cout << " Reference_point";
     cout << endl;
 
     //Corpo

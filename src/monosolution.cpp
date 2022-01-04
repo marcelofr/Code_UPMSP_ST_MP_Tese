@@ -1,10 +1,11 @@
-#include "mono_solution.h"
+#include "monosolution.h"
 
-MonoSolution::MonoSolution():Solution(){
+
+MonoSolution::MonoSolution():LSSolution(){
 
 }
 
-MonoSolution::MonoSolution (const MonoSolution &s):Solution(s){
+MonoSolution::MonoSolution (const MonoSolution &s):LSSolution(s){
     this->objective_funtion = s.objective_funtion;
 }
 
@@ -16,7 +17,7 @@ MonoSolution* MonoSolution::Create(){
 
 MonoSolution& MonoSolution::operator=(const MonoSolution &s){
 
-    Solution::operator=(s);
+    LSSolution::operator=(s);
 
     this->objective_funtion = s.objective_funtion;
 
@@ -27,17 +28,31 @@ MonoSolution& MonoSolution::operator=(const MonoSolution &s){
 
 bool MonoSolution::operator <(const MonoSolution& s){
 
-    return Solution::operator <(s);
+    return LSSolution::operator <(s);
 }
 
 bool MonoSolution::operator ==(const MonoSolution& s){
 
-    return Solution::operator ==(s);
+    return LSSolution::operator ==(s);
 }
 
 void MonoSolution::CalculeMonoObjective(){
 
     this->objective_funtion = this->weights.first*this->makeSpan + this->weights.second*this->TEC;
+}
+
+void MonoSolution::CalculeMonoObjectiveTchebycheff(){
+
+    if(this->makeSpan < Z_STAR::makespan){
+        Z_STAR::makespan = this->makeSpan;
+    }
+
+    if(this->TEC < Z_STAR::TEC){
+        Z_STAR::TEC = this->TEC;
+    }
+
+    this->objective_funtion = max(this->weights.first*(this->makeSpan-Z_STAR::makespan), this->weights.second*(this->TEC-Z_STAR::TEC));
+    //this->objective_funtion = (this->weights.first*this->makeSpan) + (this->weights.second*this->TEC);
 }
 
 void MonoSolution::GenerateGreedySolutionWeigth()
