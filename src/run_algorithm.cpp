@@ -442,10 +442,10 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
 #ifdef DEBUG
     cout << "===========Inicio Solução Inicial===========" << endl;
 #endif
-    //non_dominated_set_ms->ConstrutiveGreedyWeight(sz);
-    non_dominated_set_ms->ConstrutiveGreedyAndRandom(sz);
+    non_dominated_set_ms->ConstrutiveGreedyWeight(sz);
+    /*non_dominated_set_ms->ConstrutiveGreedyAndRandom(sz);
     SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
-    SetWeights(non_dominated_set_ms->set_solution);
+    SetWeights(non_dominated_set_ms->set_solution);*/
 
 
     /*non_dominated_set_ms->ConstructiveCombinatorialSolution();

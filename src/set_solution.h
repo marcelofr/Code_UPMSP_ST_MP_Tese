@@ -398,14 +398,13 @@ public:
 
     void ConstrutiveGreedyWeight(unsigned set_size){
 
-        T my_solution, my_solution_m, my_solution_t;
+        T my_solution;
         my_solution = nullptr;
 
         unsigned x,y;
         x = set_size;
         y = 0;
 
-    //#define EPS 0
 
         /*Gerar uma solução gulosa considerando o objetivo do makespan*/
         my_solution = my_solution->Create();
@@ -421,25 +420,21 @@ public:
 
 
         /*Gerar o restante dos indivíduos aleatoriamente*/
-        for (unsigned i = 0; i < set_size/2-1; ++i) {
+        for (unsigned i = 0; i < set_size-2; ++i) {
             /*Gerar uma solução gulosa considerando o objetivo do makespan*/
-            my_solution_m = my_solution->Create();
+            my_solution = my_solution->Create();
 
-            *my_solution_m = *my_solution;
+            my_solution->weights.first = double(y)/double(set_size);
+            my_solution->weights.second = double(x)/double(set_size);
 
-            my_solution_m->weights.first = double(y)/double(set_size);
-            my_solution_m->weights.second = double(x)/double(set_size);
+            my_solution->GenerateGreedySolutionWeigth();
+
+
+            this->set_solution.push_back(my_solution);
 
             x--;
             y++;
 
-            //my_solution->GenerateGreedySolutionWeigth();
-            //this->AddSolution(my_solution);
-            /*if(i%2 == 0)
-                my_solution->GenerateGreedySolutionMakespan();
-            else
-                my_solution->GenerateGreedySolutionTEC3();*/
-            this->set_solution.push_back(my_solution_m);
         }
 
         /*Gerar uma solução gulosa considerando o objetivo do makespan*/
@@ -449,40 +444,11 @@ public:
         my_solution->weights.second = 1-EPS;
 
         my_solution->GenerateGreedySolutionTEC3();
-        //this->AddSolution(my_solution);
-        //this->set_solution.push_back(my_solution);
-
-        /*Gerar o restante dos indivíduos aleatoriamente*/
-        for (unsigned i = set_size/2; i < set_size-1; ++i) {
-            /*Gerar uma solução gulosa considerando o objetivo do makespan*/
-
-            my_solution_t = my_solution->Create();
-
-            *my_solution_t = *my_solution;
-
-            my_solution_t->weights.first = double(y)/double(set_size);
-            my_solution_t->weights.second = double(x)/double(set_size);
-
-            x--;
-            y++;
-
-            //my_solution->GenerateGreedySolutionWeigth();
-            //this->AddSolution(my_solution);
-            /*if(i%2 == 0)
-                my_solution->GenerateGreedySolutionMakespan();
-            else
-                my_solution->GenerateGreedySolutionTEC3();*/
-            this->set_solution.push_back(my_solution_t);
-        }
 
         this->set_solution.push_back(my_solution);
 
     }
 
-    /*NDSetSolution& operator=(NDSetSolution &s){
-
-        return (NDSetSolution&)(SetSolution<T>::operator =(s));
-    }*/
 };
 
 void SortByMakespan(vector<Solution*> &set_solution);
