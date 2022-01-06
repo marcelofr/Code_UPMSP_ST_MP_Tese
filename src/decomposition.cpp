@@ -721,16 +721,16 @@ void SortByMakespanMonoSolution(vector<MonoSolution*> &set_solution)
     //sort(set_solution.begin(), set_solution.end());
 }
 
-void SetWeights(NDSetSolution<MonoSolution *> non_dominated_set){
+void SetWeights(vector<MonoSolution *> &set_solution){
 
     vector<pair<double, double>> Weigths;
     unsigned qtd_solutions;
-    qtd_solutions = non_dominated_set.set_solution.size();
+    qtd_solutions = set_solution.size();
 
     GenerateWeightVector(Weigths, qtd_solutions);
 
     unsigned i=0;
-    for(auto it: non_dominated_set.set_solution){
+    for(auto it: set_solution){
         it->weights = Weigths[i++];
     }
 
@@ -742,26 +742,26 @@ void GenerateWeightVector(vector<pair<double, double>> &Weigths, unsigned num_we
     Weigths.resize(num_weights);
 
     unsigned x,y;
-    x = 0;
-    y = num_weights;
+    x = num_weights;
+    y = 0;
 
-    Weigths[0].first = EPS;
-    Weigths[0].second = 1-EPS;
+    Weigths[0].first = 1-EPS;
+    Weigths[0].second = EPS;
 
-    x++;
-    y--;
+    x--;
+    y++;
 
     for(unsigned h=1;h<num_weights-1 ;h++){
-        Weigths[h].first = double(x)/double(num_weights-1);
-        Weigths[h].second = double(y-1)/double(num_weights-1);
-        x++;
-        y--;
+        Weigths[h].first = double(x-1)/double(num_weights-1);
+        Weigths[h].second = double(y)/double(num_weights-1);
+        x--;
+        y++;
     }
 
-    Weigths[num_weights-1].first = 1-EPS;
-    Weigths[num_weights-1].second = EPS;
-    x++;
-    y--;
+    Weigths[num_weights-1].first = EPS;
+    Weigths[num_weights-1].second = 1-EPS;
+    x--;
+    y++;
 
 }
 

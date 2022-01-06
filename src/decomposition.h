@@ -22,7 +22,8 @@ bool ChangeOpModeLSMono_BI(MonoSolution *my_solution);
 bool CompareMakespanMonoSolution(MonoSolution *& l, MonoSolution *& r);
 void SortByMakespanMonoSolution(vector<MonoSolution*> &set_solution);
 
-void SetWeights(NDSetSolution<MonoSolution *> non_dominated_set);
+//void SetWeights(NDSetSolution<MonoSolution *> non_dominated_set);
+void SetWeights(vector<MonoSolution *> &set_solution);
 void GenerateWeightVector(vector<pair<double, double>> &W, unsigned num_weights);
 
 MonoSolution * Destruction(MonoSolution * solution, unsigned level);
