@@ -26,8 +26,7 @@ public:
 
     void CalculeMonoObjectiveTchebycheff();
 
-    void GenerateGreedySolutionWeigth()
-    ;
+    void GenerateGreedySolutionWeigth();
 
     unsigned FindJobBestPosMacWeigth(unsigned new_job, unsigned machine,
                                      double &smaller_weigth_obj_machine,

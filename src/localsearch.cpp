@@ -346,7 +346,7 @@ void MOVNS(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data alg_da
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        //Selecionar aleatoriamente uma estrutura de vizinhanÃ§a
+        //Selecionar aleatoriamente uma estrutura de vizinhança
         op_neighbor=rand()%alg_data.qtd_neighbor;
 
         //Shaking

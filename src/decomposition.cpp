@@ -100,8 +100,8 @@ bool SwapInsideLSMono_BI(MonoSolution *my_solution)
 
                 //Verifica se a solução vizinha é melhor que a solução corrente
                 //Caso afirmativo, então retorna true, senão continua a busca
-                //if(neighbor_sol->objective_funtion < best_sol->objective_funtion){
-                if(neighbor_sol->objective_funtion - best_sol->objective_funtion < -EPS){
+                if(neighbor_sol->objective_funtion < best_sol->objective_funtion){
+                //if(neighbor_sol->objective_funtion - best_sol->objective_funtion < -EPS){
                     *best_sol = *neighbor_sol;
                 }
 
@@ -580,7 +580,7 @@ bool ChangeOpModeLSMono_FI(MonoSolution *my_solution)
             //Para cada modo de operração k
             for (unsigned k = 1; k <= Instance::num_mode_op; ++k) {
 
-                //if(old_op != k){
+                if(old_op != k){
 
                     neighbor_sol->ChangeModeOpJobDelta(i, j, k);
                     neighbor_sol->CalculeMonoObjectiveTchebycheff();
@@ -597,7 +597,7 @@ bool ChangeOpModeLSMono_FI(MonoSolution *my_solution)
 
                     neighbor_sol->ChangeModeOpJobDelta(i, j, old_op);
 
-                //}
+                }
 
             }
 
@@ -846,8 +846,8 @@ void Construction(MonoSolution * partial_solution, vector<unsigned> removed_jobs
                         reconstructed_solution->CalculeMonoObjective();
                         best_reconstructed_solution->CalculeMonoObjective();
 
-                        //if(reconstructed_solution->objective_funtion < best_reconstructed_solution->objective_funtion){
-                        if(reconstructed_solution->objective_funtion - best_reconstructed_solution->objective_funtion < -EPS){
+                        if(reconstructed_solution->objective_funtion < best_reconstructed_solution->objective_funtion){
+                        //if(reconstructed_solution->objective_funtion - best_reconstructed_solution->objective_funtion < -EPS){
                             *best_reconstructed_solution = *reconstructed_solution;
                         }
 
@@ -1185,7 +1185,61 @@ bool LS_Mono_FI(MonoSolution *my_solution, unsigned op_neighbor){
 void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1)
 {
 
-    MonoSolution * current_solution;
+    MonoSolution * neiboor_solution = new MonoSolution();
+    MonoSolution * best_solution = new MonoSolution();
+    //MonoSolution * current_solution;
+
+    unsigned index, op, level;
+
+    op = 0;
+    while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+
+        level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
+
+        //Escolher a próxima solução a ser explorada
+        index = rand()%non_dominated_set.set_solution.size();
+        *best_solution = *non_dominated_set.set_solution[index];
+        best_solution->CalculeMonoObjectiveTchebycheff();
+        *neiboor_solution = *best_solution;
+
+
+        switch (op%3) {
+            case 0:
+                //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
+                ChangeOpModeLSMono_FI(neiboor_solution);
+                break;
+            case 1:
+                //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                SwapOutsideLSMono_FI(neiboor_solution);
+                break;
+            case 2:
+                SwapInsideLSMono_BI(neiboor_solution);
+                break;
+        }
+
+        neiboor_solution->CalculeMonoObjectiveTchebycheff();
+        best_solution->CalculeMonoObjectiveTchebycheff();
+        if(neiboor_solution->objective_funtion < best_solution->objective_funtion){
+            *non_dominated_set.set_solution[index] = *neiboor_solution;
+        }
+        else{
+            if(op%3 == 2){
+                IntesificationArroyo(neiboor_solution, level);
+            }
+            op++;
+        }
+
+        t1->stop();
+
+    }
+
+    //delete neiboor_solution;
+    //delete best_solution;
+
+    //if(LS_Mono_FI(current_solution, r)){
+    //if(LS_Mono_BI(current_solution, r)){
+
+    /*MonoSolution * current_solution;
 
     vector<pair<double, double>> Weights;
     GenerateWeightVector(Weights, alg_data.num_weights);
@@ -1269,8 +1323,8 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
 
                 if(r < alg_data.qtd_neighbor){
 
-                    //if(LS_Mono_FI(current_solution, r)){
-                    if(LS_Mono_BI(current_solution, r)){
+                    if(LS_Mono_FI(current_solution, r)){
+                    //if(LS_Mono_BI(current_solution, r)){
 
                         non_dominated_set.set_solution[op]->CalculeMonoObjectiveTchebycheff();
 
@@ -1332,6 +1386,6 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
         t1->stop();
     }
 
-    delete current_solution;
+    delete current_solution;*/
 
 }

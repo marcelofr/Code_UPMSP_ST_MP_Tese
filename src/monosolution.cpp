@@ -43,16 +43,20 @@ void MonoSolution::CalculeMonoObjective(){
 
 void MonoSolution::CalculeMonoObjectiveTchebycheff(){
 
-    if(this->makeSpan < Z_STAR::makespan){
+    if(this->makeSpan > Z_STAR::makespan){
         Z_STAR::makespan = this->makeSpan;
     }
 
-    if(this->TEC < Z_STAR::TEC){
+    if(this->TEC > Z_STAR::TEC){
         Z_STAR::TEC = this->TEC;
     }
 
-    this->objective_funtion = max(this->weights.first*(this->makeSpan-Z_STAR::makespan), this->weights.second*(this->TEC-Z_STAR::TEC));
+    //this->objective_funtion = max(this->weights.first*(this->makeSpan-Z_STAR::makespan), this->weights.second*(this->TEC-Z_STAR::TEC));
     //this->objective_funtion = (this->weights.first*this->makeSpan) + (this->weights.second*this->TEC);
+    this->objective_funtion =
+            this->weights.first*(double(this->makeSpan)/double(Z_STAR::makespan)) +
+            this->weights.second*(double(this->TEC)/double(Z_STAR::TEC));
+
 }
 
 void MonoSolution::GenerateGreedySolutionWeigth()
@@ -61,7 +65,7 @@ void MonoSolution::GenerateGreedySolutionWeigth()
     unsigned machine, position, diff_time;
     unsigned best_machine, best_position, best_diff_time, best_op_mode;
     double obj_job, best_obj_job;
-    vector<unsigned>::iterator it2;
+    //vector<unsigned>::iterator it2;
 
     for(unsigned i = 0; i <= Instance::num_jobs; i++){
         jobs[i] = i;
@@ -71,7 +75,7 @@ void MonoSolution::GenerateGreedySolutionWeigth()
     srand(Instance::seed);
     random_shuffle(jobs.begin()+1, jobs.end());
 
-    //Inserir cada tarefa através de uma estratégia gulosa
+    /*//Inserir cada tarefa através de uma estratégia gulosa
     while (jobs.size() > 1) {
         best_obj_job = INT_MAX;
         best_machine = 1;
@@ -103,7 +107,73 @@ void MonoSolution::GenerateGreedySolutionWeigth()
 
         jobs.erase(it2);
 
+    }*/
+
+
+
+    //Inserir cada tarefa através de uma estratégia gulosa
+    for(auto it = jobs.begin()+1; it != jobs.end(); ++it){
+        best_obj_job = INT_MAX;
+        best_machine = 1;
+        best_position = 0;
+        best_diff_time = 0;
+        best_op_mode = 1;
+        //for(unsigned id_machine=1; id_machine <= Instance::num_machine ; id_machine++){
+            for(unsigned id_op=1; id_op <= Instance::num_mode_op ; id_op++){
+                //for(unsigned id_pos=0; id_pos <= scheduling[id_machine].size() ; id_pos++){*/
+                    GreedyChoiceWeigth(*it, best_op_mode, machine, position, diff_time, obj_job);
+                    if(obj_job - best_obj_job < -EPS){
+                        best_machine = machine;
+                        best_position = position;
+                        best_diff_time = diff_time;
+                        best_obj_job = obj_job;
+                        best_op_mode = id_op;
+                        //it2 = it;
+                    }
+                //}
+            }
+        //}
+        AddJob(*it, best_machine, best_position, best_diff_time);
+
+        //Definir o modo de operação da nova tarefa
+        job_mode_op[*it] = best_op_mode;
+
+        //jobs.erase(it);
     }
+
+
+    /*while (jobs.size() > 1) {
+        best_obj_job = INT_MAX;
+        best_machine = 1;
+        best_position = 0;
+        best_diff_time = 0;
+        best_op_mode = 1;
+        for(auto it = jobs.begin()+1; it != jobs.end(); ++it){
+
+            for(unsigned o=1; o<=Instance::num_mode_op; o++){
+                obj_job = 0;
+                machine = 1;
+                GreedyChoiceWeigth(*it, o, machine, position, diff_time, obj_job);
+                if(obj_job - best_obj_job < -EPS){
+                    best_machine = machine;
+                    best_position = position;
+                    best_diff_time = diff_time;
+                    best_obj_job = obj_job;
+                    best_op_mode = o;
+                    it2 = it;
+                }
+            }
+
+        }
+
+        AddJob(*it2, best_machine, best_position, best_diff_time);
+
+        //Definir o modo de operação da nova tarefa
+        job_mode_op[*it2] = best_op_mode;
+
+        jobs.erase(it2);
+
+    }*/
 
     //CalculateInitialTimeMin();
     CalculateShorterTimeHorizon();
@@ -114,6 +184,11 @@ void MonoSolution::GenerateGreedySolutionWeigth()
 #endif
 }
 
+
+/*
+ * Escolher a melhor posição
+ *
+ */
 unsigned MonoSolution::FindJobBestPosMacWeigth(unsigned new_job, unsigned machine,
                                  double &smaller_weigth_obj_machine,
                                  unsigned &diff_time_job)
@@ -231,6 +306,11 @@ unsigned MonoSolution::FindJobBestPosMacWeigth(unsigned new_job, unsigned machin
     return best_position;
 }
 
+
+/*
+ * Escolher a máquina e a posição
+ * O modo de operação já vem definido
+ * */
 void MonoSolution::GreedyChoiceWeigth(unsigned new_job, unsigned mode_op, unsigned &best_machine, unsigned &best_position, unsigned &diff_time, double &obj_job)
 {
     unsigned best_position_machine, diff_time_machine;

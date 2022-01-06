@@ -13,7 +13,7 @@ void RunAlgorithm(algorithm_data alg_data){
 
     Instance::seed = alg_data.param.u_seed;
 
-    Discretize(1);
+    Discretize(10);
 
     vector<Solution*> nd_set_solution;
 
@@ -118,11 +118,11 @@ void RunAlgorithmNSGAII(algorithm_data alg_data, vector<Solution*> &non_dominate
     SortByMakespan(non_dominated_set_ga->set_solution);
 
     #ifdef DEBUG
-        cout << "===========Inicio NSGA===========" << endl;
+        cout << "===========Inicio NSGA-II===========" << endl;
         PrintPopulation(non_dominated_set_ga->set_solution);
         //non_dominated_set_ga->PrintSetSolution();
         t1->printElapsedTimeInMilliSec();
-        cout << "===========Fim NSGA===========" << endl;
+        cout << "===========Fim NSGA-II===========" << endl;
     #endif
 
     non_dominated_set.clear();
@@ -438,6 +438,10 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
     alg_data.qtd_neighbor = QTD_NEIGHBOR;
 
     alg_data.num_weights = sz;
+
+#ifdef DEBUG
+    cout << "===========Inicio Solução Inicial===========" << endl;
+#endif
     non_dominated_set_ms->ConstrutiveGreedyWeight(sz);
 
     /*non_dominated_set_ms->ConstructiveCombinatorialSolution();
@@ -445,18 +449,22 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
 
 
     #ifdef DEBUG
-        cout << "===========Inicio Solução Inicial===========" << endl;
         non_dominated_set_ms->PrintSetSolution();
         cout << "===========Fim Solução Inicial===========" << endl << endl;
 
         cout << "Tempo limite: " << alg_data.time_limit << endl;
     #endif
 
-    //SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
 
-    //SetWeights(*non_dominated_set_ms);
+#ifdef DEBUG
+    cout << endl << "===========Inicio MOVNS/D===========" << endl;
+#endif
+
     MOVNS_D(*non_dominated_set_ms, alg_data, t1);
 
+    SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
+
+    //Criar um novo conjunto para ajudar a remover soluções repetidas
     NDSetSolution<MonoSolution *> *non_dominated_set_local = new NDSetSolution<MonoSolution *>();
 
     for(auto it:non_dominated_set_ms->set_solution){
@@ -464,8 +472,6 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
     }
 
 #ifdef DEBUG
-    cout << "===========Inicio MOVNS/D===========" << endl;
-    t1->stop();
     non_dominated_set_local->PrintSetSolution();
     t1->printElapsedTimeInMilliSec();
     cout << "===========Fim MOVNS/D===========" << endl << endl;

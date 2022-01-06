@@ -699,7 +699,7 @@ double Solution::CalcPECToJob(unsigned machine, unsigned job, unsigned h, bool d
 {
     double pt, end, time_job_on, time_job_off;
 
-    if(discrete_time)
+    if(Instance::discretization_factor != 1 || discrete_time)
         pt = ceil(double(Instance::m_processing_time[machine][job])
                 /double(Instance::v_speed_factor[job_mode_op[job]]));
     else

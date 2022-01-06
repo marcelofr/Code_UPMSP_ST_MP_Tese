@@ -67,6 +67,7 @@ public:
     void CalculateObjectiveDiscrete();
     void CalculateObjectiveMachine(unsigned machine);
 
+    //double CalcPECToJob(unsigned machine, unsigned job, unsigned h, bool discrete_time=false);
     double CalcPECToJob(unsigned machine, unsigned job, unsigned h, bool discrete_time=false);
 
     void Check();

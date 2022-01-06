@@ -53,6 +53,7 @@ int main(int argc, char** argv)
         alg_data.param.instance_file = alg_data.param.instance_folder + alg_data.param.instance_name + alg_data.param.instance_extension;
 
         //alg_data.param.s_seed = "50396";
+        //alg_data.param.s_seed = "6241";
         alg_data.param.s_seed = "60048";
         //alg_data.param.algorithm_name = "NSGAII"; //nsga-ii
         //alg_data.param.algorithm_name = "EXACT";
@@ -69,8 +70,8 @@ int main(int argc, char** argv)
         alg_data.param.file_solution = alg_data.param.folder_solution + alg_data.param.algorithm_name + "_"
                + alg_data.param.instance_name + "_" + alg_data.param.s_seed +  ".sol";
         alg_data.param.s_alpha = "0.0001";
-        alg_data.param.s_population_size = "80";
-        alg_data.param.s_prob_mutation = "6";
+        alg_data.param.s_population_size = "110";
+        alg_data.param.s_prob_mutation = "5";
 
         alg_data.param.s_decomposition_size = "40";
         alg_data.param.s_decomposition_neighboor_size = "8";
