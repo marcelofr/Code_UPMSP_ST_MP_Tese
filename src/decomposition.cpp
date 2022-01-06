@@ -580,7 +580,7 @@ bool ChangeOpModeLSMono_FI(MonoSolution *my_solution)
             //Para cada modo de operração k
             for (unsigned k = 1; k <= Instance::num_mode_op; ++k) {
 
-                if(old_op != k){
+                //if(old_op != k){
 
                     neighbor_sol->ChangeModeOpJobDelta(i, j, k);
                     neighbor_sol->CalculeMonoObjectiveTchebycheff();
@@ -597,7 +597,7 @@ bool ChangeOpModeLSMono_FI(MonoSolution *my_solution)
 
                     neighbor_sol->ChangeModeOpJobDelta(i, j, old_op);
 
-                }
+                //}
 
             }
 
@@ -1192,6 +1192,7 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
     unsigned index, op, level;
 
     op = 0;
+    unsigned num_neighboor=5;
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
         level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
@@ -1199,6 +1200,104 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
         //Escolher a próxima solução a ser explorada
         index = rand()%non_dominated_set.set_solution.size();
         *best_solution = *non_dominated_set.set_solution[index];
+        best_solution->CalculeMonoObjectiveTchebycheff();
+        *neiboor_solution = *best_solution;
+
+        switch (op%num_neighboor) {
+            case 0:
+                //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
+                ChangeOpModeLSMono_FI(neiboor_solution);
+                break;
+            case 1:
+                //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                SwapOutsideLSMono_FI(neiboor_solution);
+                break;
+            case 2:
+                InsertOutsideLSMono_FI(neiboor_solution);
+                break;
+            case 3:
+                //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                SwapInsideLSMono_FI(neiboor_solution);
+                break;
+            case 4:
+                InsertInsideLSMono_FI(neiboor_solution);
+                break;
+        }
+
+        neiboor_solution->CalculeMonoObjectiveTchebycheff();
+        best_solution->CalculeMonoObjectiveTchebycheff();
+        if(neiboor_solution->objective_funtion < best_solution->objective_funtion){
+            *non_dominated_set.set_solution[index] = *neiboor_solution;
+        }
+        else{
+            if(op%num_neighboor == num_neighboor-1){
+                IntesificationArroyo(neiboor_solution, level);
+            }
+            op++;
+        }
+
+        t1->stop();
+
+    }
+
+    delete neiboor_solution;
+    delete best_solution;
+}
+
+void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1)
+{
+
+    MonoSolution * neiboor_solution = new MonoSolution();
+    MonoSolution * best_solution = new MonoSolution();
+    //MonoSolution * current_solution;
+
+    unsigned op, level;
+    unsigned index_s, index_n;
+
+
+    vector<pair<double, double>> Weights;
+    GenerateWeightVector(Weights, alg_data.num_weights);
+
+    //Calcular as distâncias entre os pesos par a par
+    vector<vector<double>>distance_weighted(alg_data.num_weights, vector<double>(alg_data.num_weights));
+    for(unsigned i=0; i<alg_data.num_weights; i++){
+        for(unsigned j=0; j<alg_data.num_weights; j++){
+            distance_weighted[i][j] = CalcEuclideanDistance(Weights[i], Weights[j]);
+        }
+    }
+
+    //Associar as soluções mais próximas para cada peso
+    unsigned best_index;
+    double best_distance;
+    vector<vector<unsigned>>solution_neighboor(alg_data.num_weights, vector<unsigned>(alg_data.num_group));
+
+    //Associar cada peso a um conjunto j de pesos
+    for(unsigned i=0; i<alg_data.num_weights; i++){
+        for(unsigned k=0; k<alg_data.num_group; k++){
+            best_distance = INT_MAX;
+            best_index = 0;
+            for(unsigned j=0; j<alg_data.num_weights; j++){
+                if(distance_weighted[i][j] < best_distance){
+                    best_distance = distance_weighted[i][j];
+                    best_index = j;
+                }
+            }
+            solution_neighboor[i][k] = best_index;
+            distance_weighted[i][best_index] = INT_MAX;
+        }
+    }
+
+    op = 0;
+    level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
+    while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+
+        for(unsigned i=0; i<alg_data.num_weights;i++){
+
+        //Escolher a próxima solução a ser explorada
+        //index = rand()%non_dominated_set.set_solution.size();
+        index_n = rand()%solution_neighboor[i].size();
+        index_s = solution_neighboor[i][index_n];
+        *best_solution = *non_dominated_set.set_solution[index_s];
         best_solution->CalculeMonoObjectiveTchebycheff();
         *neiboor_solution = *best_solution;
 
@@ -1220,7 +1319,7 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
         neiboor_solution->CalculeMonoObjectiveTchebycheff();
         best_solution->CalculeMonoObjectiveTchebycheff();
         if(neiboor_solution->objective_funtion < best_solution->objective_funtion){
-            *non_dominated_set.set_solution[index] = *neiboor_solution;
+            *non_dominated_set.set_solution[index_s] = *neiboor_solution;
         }
         else{
             if(op%3 == 2){
@@ -1229,7 +1328,184 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
             op++;
         }
 
+        for(auto it_j:solution_neighboor[i]){
+            auto w_j = non_dominated_set.set_solution[it_j]->weights;
+            /*auto obj_i = max(w_j.first*(non_dominated_set.set_solution[index_s]->makeSpan - Z_STAR::makespan),
+                            w_j.second*(non_dominated_set.set_solution[index_s]->TEC - Z_STAR::TEC));
+            auto obj_j = max(w_j.first*(non_dominated_set.set_solution[it_j]->makeSpan - Z_STAR::makespan),
+                            w_j.second*(non_dominated_set.set_solution[it_j]->TEC - Z_STAR::TEC));*/
+
+            auto obj_i = w_j.first*(double(non_dominated_set.set_solution[index_s]->makeSpan) / double(Z_STAR::makespan)) +
+                    w_j.second*(double(non_dominated_set.set_solution[index_s]->TEC) / double(Z_STAR::TEC));
+            auto obj_j = w_j.first*(double(non_dominated_set.set_solution[it_j]->makeSpan) / double(Z_STAR::makespan)) +
+                    w_j.second*(double(non_dominated_set.set_solution[it_j]->TEC) / double(Z_STAR::TEC));
+
+            if(obj_i < obj_j){
+            //if(obj_i - obj_j < -EPS){
+                *non_dominated_set.set_solution[it_j] = *non_dominated_set.set_solution[index_s];
+                non_dominated_set.set_solution[it_j]->weights = w_j;
+            }
+        }
+
+        }
+
         t1->stop();
 
     }
+
+    //delete neiboor_solution;
+    //delete best_solution;
+
+    //if(LS_Mono_FI(current_solution, r)){
+    //if(LS_Mono_BI(current_solution, r)){
+
+    /*MonoSolution * current_solution;
+
+    vector<pair<double, double>> Weights;
+    GenerateWeightVector(Weights, alg_data.num_weights);
+
+    Z_STAR::makespan = INT_MAX;
+    Z_STAR::TEC = INT_MAX;
+
+    for(auto it:non_dominated_set.set_solution){
+        if(it->makeSpan < Z_STAR::makespan){
+            Z_STAR::makespan = it->makeSpan;
+        }
+
+        if(it->TEC < Z_STAR::TEC){
+            Z_STAR::TEC = it->TEC;
+        }
+    }
+
+    for(auto it:non_dominated_set.set_solution){
+        it->CalculeMonoObjectiveTchebycheff();
+    }
+
+    //Calcular as distâncias entre os pesos par a par
+    vector<vector<double>>distance_weighted(alg_data.num_weights, vector<double>(alg_data.num_weights));
+    for(unsigned i=0; i<alg_data.num_weights; i++){
+        for(unsigned j=0; j<alg_data.num_weights; j++){
+            distance_weighted[i][j] = CalcEuclideanDistance(Weights[i], Weights[j]);
+        }
+    }
+
+    //Associar as soluções mais próximas para cada peso
+    unsigned best_index;
+    double best_distance;
+    vector<vector<unsigned>>solution_neighboor(alg_data.num_weights, vector<unsigned>(alg_data.num_group));
+
+    //Associar cada peso a um conjunto j de pesos
+    for(unsigned i=0; i<alg_data.num_weights; i++){
+        for(unsigned k=0; k<alg_data.num_group; k++){
+            best_distance = INT_MAX;
+            best_index = 0;
+            for(unsigned j=0; j<alg_data.num_weights; j++){
+                if(distance_weighted[i][j] < best_distance){
+                    best_distance = distance_weighted[i][j];
+                    best_index = j;
+                }
+            }
+            solution_neighboor[i][k] = best_index;
+            distance_weighted[i][best_index] = INT_MAX;
+        }
+    }
+
+    //Em solution_neighboor, temos os n vizinhos mais próximos para cada peso
+
+    current_solution = new MonoSolution ();
+
+    unsigned index, op;
+
+    while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+
+        for(unsigned i=0; i<alg_data.num_weights;i++){
+
+            //Selecionar aleatoriamente um vizinho e B_i
+            //random_shuffle( solution_neighboor[i].begin(), solution_neighboor[i].end() );
+
+            index = rand()%solution_neighboor[i].size();
+            op = solution_neighboor[i][index];
+
+            //ILS
+            unsigned r = 0;
+            unsigned op_neighboor;
+            bool improve = false;
+            unsigned level = 2;
+            unsigned max_level = 5;
+
+            //*current_solution = *non_dominated_set.set_solution[it_i];
+            *current_solution = *non_dominated_set.set_solution[op];
+
+            op_neighboor = rand()%alg_data.qtd_neighbor;
+            current_solution = Shaking(current_solution, op_neighboor, level);
+
+            while(r <= alg_data.qtd_neighbor && t1->getElapsedTimeInMilliSec() < alg_data.time_limit){
+
+                if(r < alg_data.qtd_neighbor){
+
+                    if(LS_Mono_FI(current_solution, r)){
+                    //if(LS_Mono_BI(current_solution, r)){
+
+                        non_dominated_set.set_solution[op]->CalculeMonoObjectiveTchebycheff();
+
+                        if(current_solution->objective_funtion - non_dominated_set.set_solution[op]->objective_funtion < -0.01){
+                        //if(current_solution < non_dominated_set.set_solution[op]){
+                            *non_dominated_set.set_solution[op] = *current_solution;
+                            improve = true;
+                            //r = 0;
+                        }
+
+                    }
+                }
+                else{
+
+                    IntesificationArroyo(current_solution, ceil(double(Instance::num_jobs)/double(10)));
+
+                    non_dominated_set.set_solution[op]->CalculeMonoObjectiveTchebycheff();
+
+                    //Se current_solution é melhor que non_dominated_set.set_solution[op]
+                    if(current_solution->objective_funtion - non_dominated_set.set_solution[op]->objective_funtion < -EPS){
+                    //if(current_solution < non_dominated_set.set_solution[op]){
+                        *non_dominated_set.set_solution[op] = *current_solution;
+                        improve = true;
+                    }
+                }
+
+                r++;
+
+                t1->stop();
+            }
+
+            if(!improve){
+                level++;
+                if(level > max_level){
+                    level = 2;
+                }
+            }
+            else{
+                level = 2;
+            }
+
+            for(auto it_j:solution_neighboor[i]){
+                auto w_j = non_dominated_set.set_solution[it_j]->weights;
+                auto obj_i = max(w_j.first*(non_dominated_set.set_solution[op]->makeSpan - Z_STAR::makespan),
+                                w_j.second*(non_dominated_set.set_solution[op]->TEC - Z_STAR::TEC));
+                auto obj_j = max(w_j.first*(non_dominated_set.set_solution[it_j]->makeSpan - Z_STAR::makespan),
+                                w_j.second*(non_dominated_set.set_solution[it_j]->TEC - Z_STAR::TEC));
+
+
+                //if(obj_i < obj_j){
+                if(obj_i - obj_j < -EPS){
+                    *non_dominated_set.set_solution[it_j] = *non_dominated_set.set_solution[op];
+                    non_dominated_set.set_solution[it_j]->weights = w_j;
+                }
+            }
+
+        }
+
+        t1->stop();
+    }
+
+    delete current_solution;*/
+
 }

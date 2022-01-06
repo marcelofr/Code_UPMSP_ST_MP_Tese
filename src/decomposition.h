@@ -35,6 +35,6 @@ MonoSolution *GenNeighborSol(MonoSolution *my_solution, unsigned op_neighbor);
 
 void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1);
 bool LS_Mono_BI(MonoSolution *my_solution, unsigned op_neighbor);
-
+void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1);
 
 #endif // DECOMPOSITION_H
