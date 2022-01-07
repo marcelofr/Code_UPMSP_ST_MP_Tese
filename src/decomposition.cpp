@@ -843,8 +843,8 @@ void Construction(MonoSolution * partial_solution, vector<unsigned> removed_jobs
                         reconstructed_solution->CalculateObjectiveMachine(i);
                         //non_dominated_set_partial_next.AddSolution(reconstructed_solution);
 
-                        reconstructed_solution->CalculeMonoObjective();
-                        best_reconstructed_solution->CalculeMonoObjective();
+                        reconstructed_solution->CalculeMonoObjectiveTchebycheff();
+                        best_reconstructed_solution->CalculeMonoObjectiveTchebycheff();
 
                         if(reconstructed_solution->objective_funtion < best_reconstructed_solution->objective_funtion){
                         //if(reconstructed_solution->objective_funtion - best_reconstructed_solution->objective_funtion < -EPS){
@@ -871,6 +871,52 @@ void Construction(MonoSolution * partial_solution, vector<unsigned> removed_jobs
 
 }
 
+void Construction2(MonoSolution * partial_solution, vector<unsigned> removed_jobs){
+
+    MonoSolution * best_partial_solution = new MonoSolution() ;
+    MonoSolution * new_partial_solution = new MonoSolution() ;
+
+
+    *best_partial_solution = *partial_solution;
+    *new_partial_solution = *partial_solution;
+
+    for(unsigned it_1=0; it_1<removed_jobs.size(); it_1++){
+
+        for(unsigned it_2=it_1+1; it_2<removed_jobs.size(); it_2++){
+
+
+            best_partial_solution->AddJob(it_1, 1, 0, 0);
+            //best_partial_solution->job_mode_op[] = ;
+            best_partial_solution->CalculateShorterTimeHorizon();
+            best_partial_solution->CalculateObjective();
+
+            //Para cada modo de operação
+            for(unsigned op_mode = 1; op_mode <= Instance::num_mode_op; op_mode++ ){
+
+                //Para cada máquina
+                for(unsigned i=1; i<=Instance::num_machine; i++){
+
+                    for(unsigned pos=0; pos <partial_solution->scheduling[i].size(); pos++){
+                        new_partial_solution->AddJob(it_2, i, pos, 0);
+                        new_partial_solution->CalculateShorterTimeHorizon();
+                        new_partial_solution->CalculateObjective();
+                        new_partial_solution->CalculeMonoObjectiveTchebycheff();
+
+                        best_partial_solution->CalculeMonoObjectiveTchebycheff();
+
+                        if(new_partial_solution->objective_funtion < best_partial_solution->objective_funtion){
+                            *best_partial_solution = *new_partial_solution;
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
+    *partial_solution = *best_partial_solution;
+}
+
 bool IntesificationArroyo(MonoSolution *current_solution, unsigned level){
 
     bool improve = false;
@@ -894,6 +940,7 @@ bool IntesificationArroyo(MonoSolution *current_solution, unsigned level){
     //non_dominated_set_local.AddSolution(partial_solution);
 
     Construction(partial_solution, removed_jobs);
+    //Construction2(partial_solution, removed_jobs);
 
     *current_solution = *partial_solution;
 
@@ -1186,10 +1233,16 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
 {
 
     MonoSolution * neiboor_solution = new MonoSolution();
-    MonoSolution * best_solution = new MonoSolution();
+    MonoSolution * best_solution;
     //MonoSolution * current_solution;
 
     unsigned index, op, level;
+
+
+    vector<int> v(non_dominated_set.set_solution.size());
+    iota(v.begin(), v.end(), 0); // ivec will become: [0..99]
+    random_shuffle(v.begin(), v.end());
+    unsigned id = 0;
 
     op = 0;
     unsigned num_neighboor=5;
@@ -1198,29 +1251,30 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
         level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
 
         //Escolher a próxima solução a ser explorada
-        index = rand()%non_dominated_set.set_solution.size();
-        *best_solution = *non_dominated_set.set_solution[index];
+        //index = rand()%non_dominated_set.set_solution.size();
+        index = v[id%non_dominated_set.set_solution.size()];
+        best_solution = non_dominated_set.set_solution[index];
         best_solution->CalculeMonoObjectiveTchebycheff();
         *neiboor_solution = *best_solution;
 
         switch (op%num_neighboor) {
             case 0:
-                //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
-                ChangeOpModeLSMono_FI(neiboor_solution);
+                //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                SwapOutsideLSMono_BI(neiboor_solution);
                 break;
             case 1:
-                //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
-                SwapOutsideLSMono_FI(neiboor_solution);
+                InsertOutsideLSMono_BI(neiboor_solution);
                 break;
             case 2:
-                InsertOutsideLSMono_FI(neiboor_solution);
+                //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                SwapInsideLSMono_BI(neiboor_solution);
                 break;
             case 3:
-                //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
-                SwapInsideLSMono_FI(neiboor_solution);
+                InsertInsideLSMono_BI(neiboor_solution);
                 break;
             case 4:
-                InsertInsideLSMono_FI(neiboor_solution);
+                //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
+                ChangeOpModeLSMono_BI(neiboor_solution);
                 break;
         }
 
@@ -1228,10 +1282,17 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
         best_solution->CalculeMonoObjectiveTchebycheff();
         if(neiboor_solution->objective_funtion < best_solution->objective_funtion){
             *non_dominated_set.set_solution[index] = *neiboor_solution;
+            op = 0;
         }
         else{
             if(op%num_neighboor == num_neighboor-1){
                 IntesificationArroyo(neiboor_solution, level);
+                neiboor_solution->CalculeMonoObjectiveTchebycheff();
+                best_solution->CalculeMonoObjectiveTchebycheff();
+                if(neiboor_solution->objective_funtion < best_solution->objective_funtion){
+                    *non_dominated_set.set_solution[index] = *neiboor_solution;
+                }
+                id++;
             }
             op++;
         }
@@ -1241,7 +1302,7 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
     }
 
     delete neiboor_solution;
-    delete best_solution;
+    //delete best_solution;
 }
 
 void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1)
@@ -1291,7 +1352,8 @@ void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_
     level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        for(unsigned i=0; i<alg_data.num_weights;i++){
+        //for(unsigned i=0; i<alg_data.num_weights;i++){
+        for(unsigned i=0; i<solution_neighboor.size();i++){
 
         //Escolher a próxima solução a ser explorada
         //index = rand()%non_dominated_set.set_solution.size();

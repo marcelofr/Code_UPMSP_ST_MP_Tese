@@ -465,6 +465,7 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
 #endif
 
     MOVNS_D(*non_dominated_set_ms, alg_data, t1);
+    //MOVNS_D_Vivian(*non_dominated_set_ms, alg_data, t1);
 
     SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
 
