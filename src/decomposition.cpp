@@ -1234,75 +1234,86 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
 
     MonoSolution * neiboor_solution = new MonoSolution();
     MonoSolution * best_solution;
-    //MonoSolution * current_solution;
 
-    unsigned index, op, level;
+    unsigned index, op_neighboor, level;
 
-
-    vector<int> v(non_dominated_set.set_solution.size());
-    iota(v.begin(), v.end(), 0); // ivec will become: [0..99]
-    random_shuffle(v.begin(), v.end());
-    unsigned id = 0;
-
-    op = 0;
+    //---------------------Manter atualizado
+    //Número de vizinhanças
     unsigned num_neighboor=5;
+
+    //Nível da perturbação
+    level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
+    //---------------------
+
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
-
         //Escolher a próxima solução a ser explorada
-        //index = rand()%non_dominated_set.set_solution.size();
-        index = v[id%non_dominated_set.set_solution.size()];
+        index = rand()%non_dominated_set.set_solution.size();
         best_solution = non_dominated_set.set_solution[index];
         best_solution->CalculeMonoObjectiveTchebycheff();
+
+        //Fazer uma cópia da melhor solução
         *neiboor_solution = *best_solution;
 
-        switch (op%num_neighboor) {
-            case 0:
-                //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
-                SwapOutsideLSMono_BI(neiboor_solution);
-                break;
-            case 1:
-                InsertOutsideLSMono_BI(neiboor_solution);
-                break;
-            case 2:
-                //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
-                SwapInsideLSMono_BI(neiboor_solution);
-                break;
-            case 3:
-                InsertInsideLSMono_BI(neiboor_solution);
-                break;
-            case 4:
-                //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
-                ChangeOpModeLSMono_BI(neiboor_solution);
-                break;
-        }
+        op_neighboor = 0;
+        while (op_neighboor < num_neighboor && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        neiboor_solution->CalculeMonoObjectiveTchebycheff();
-        best_solution->CalculeMonoObjectiveTchebycheff();
-        if(neiboor_solution->objective_funtion < best_solution->objective_funtion){
-            *non_dominated_set.set_solution[index] = *neiboor_solution;
-            op = 0;
-        }
-        else{
-            if(op%num_neighboor == num_neighboor-1){
-                IntesificationArroyo(neiboor_solution, level);
-                neiboor_solution->CalculeMonoObjectiveTchebycheff();
-                best_solution->CalculeMonoObjectiveTchebycheff();
-                if(neiboor_solution->objective_funtion < best_solution->objective_funtion){
-                    *non_dominated_set.set_solution[index] = *neiboor_solution;
-                }
-                id++;
+            switch (op_neighboor) {
+                case 0:
+                    //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                    SwapOutsideLSMono_FI(neiboor_solution);
+                    break;
+                case 1:
+                    InsertOutsideLSMono_FI(neiboor_solution);
+                    break;
+                case 2:
+                    //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                    SwapInsideLSMono_FI(neiboor_solution);
+                    break;
+                case 3:
+                    InsertInsideLSMono_FI(neiboor_solution);
+                    break;
+                case 4:
+                    //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
+                    ChangeOpModeLSMono_FI(neiboor_solution);
+                    break;
             }
-            op++;
+
+            //Atualizar os valores das funções objetivo
+            neiboor_solution->CalculeMonoObjectiveTchebycheff();
+            best_solution->CalculeMonoObjectiveTchebycheff();
+
+            //Verificar se houve melhora
+            if(neiboor_solution->objective_funtion < best_solution->objective_funtion){
+                *best_solution = *neiboor_solution;
+                //op_neighboor = 0;
+            }
+            else{
+                //Se não houve melhora, seguir para próxima vizinhança
+                op_neighboor++;
+
+                //Se não tem próxima vizinhança, fazer a intensificação
+                if(op_neighboor == num_neighboor){
+
+                    IntesificationArroyo(neiboor_solution, level);
+
+                    //Atualizar os valores das funções objetivo
+                    neiboor_solution->CalculeMonoObjectiveTchebycheff();
+                    best_solution->CalculeMonoObjectiveTchebycheff();
+
+                    //Verificar se houve melhora
+                    if(neiboor_solution->objective_funtion < best_solution->objective_funtion){
+                        *best_solution = *neiboor_solution;
+                    }
+                }
+            }
+
+            t1->stop();
         }
-
         t1->stop();
-
     }
 
     delete neiboor_solution;
-    //delete best_solution;
 }
 
 void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1)
