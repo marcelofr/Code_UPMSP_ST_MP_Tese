@@ -120,10 +120,10 @@ void GenerateReferenceSet(string folder_solution,
         SortByMakespan(non_dominated_set);
         SalveReferenceSolution(non_dominated_set, folder_solution, it_instance.first, reference_point);
 
-        //Inserir o conjunto de referÃªncia em sets
+        //Inserir o conjunto de referência em sets
         sets[it_instance.first]["ref_set"].insert({"all", non_dominated_set});
 
-        //Inserir o ponto de referÃªncia em reference_points
+        //Inserir o ponto de referência em reference_points
         //reference_points.insert({instance.first, reference_point});
 
         hv = CalculateHypervolume(non_dominated_set, reference_point);
