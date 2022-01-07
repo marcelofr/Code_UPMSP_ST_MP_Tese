@@ -521,6 +521,11 @@ void SalveFileSolution(algorithm_data alg_data){
         MyFile << "param2: " << alg_data.param.s_prob_mutation << endl;
         MyFile << "param3: " << "nan" << endl;
     }
+    else if(alg_data.param.algorithm_name == "MOVNS_D"){
+        MyFile << "param1: " << alg_data.param.s_decomposition_size << endl;
+        MyFile << "param2: " << alg_data.param.s_decomposition_neighboor_size << endl;
+        MyFile << "param3: " << "nan" << endl;
+    }
     else{
         MyFile << "param1: " << "nan" << endl;
         MyFile << "param2: " << "nan" << endl;
