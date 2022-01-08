@@ -428,7 +428,12 @@ public:
             my_solution->weights.second = double(x)/double(set_size);
 
             my_solution->GenerateGreedySolutionWeigth();
-
+            //my_solution->RandomInitialSolution();
+            //my_solution->GenerateGreedySolutionWeigth_Caro();
+            /*if(i%2 == 0)
+                my_solution->RandomInitialSolution();
+            else
+                my_solution->GenerateGreedySolutionWeigth();*/
 
             this->set_solution.push_back(my_solution);
 

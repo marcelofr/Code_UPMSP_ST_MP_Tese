@@ -8,16 +8,26 @@
 
 
 
-bool SwapInsideLSMono_FI(MonoSolution *my_solution);
-bool SwapInsideLSMono_BI(MonoSolution *my_solution);
-bool SwapOutsideLSMono_FI(MonoSolution *my_solution);
-bool SwapOutsideLSMono_BI(MonoSolution *my_solution);
-bool InsertInsideLSMono_FI(MonoSolution *my_solution);
-bool InsertInsideLSMono_BI(MonoSolution *my_solution);
-bool InsertOutsideLSMono_FI(MonoSolution *my_solution);
-bool InsertOutsideLSMono_BI(MonoSolution *my_solution);
-bool ChangeOpModeLSMono_FI(MonoSolution *my_solution);
-bool ChangeOpModeLSMono_BI(MonoSolution *my_solution);
+//bool SwapInsideLSMono_FI(MonoSolution *my_solution);
+bool SwapInsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
+//bool SwapInsideLSMono_BI(MonoSolution *my_solution);
+bool SwapInsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution);
+//bool SwapOutsideLSMono_FI(MonoSolution *my_solution);
+//bool SwapOutsideLSMono_BI(MonoSolution *my_solution);
+bool SwapOutsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution);
+bool SwapOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
+//bool InsertInsideLSMono_FI(MonoSolution *my_solution);
+bool InsertInsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
+//bool InsertInsideLSMono_BI(MonoSolution *my_solution);
+bool InsertInsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution);
+//bool InsertOutsideLSMono_FI(MonoSolution *my_solution);
+bool InsertOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution* best_solution);
+//bool InsertOutsideLSMono_BI(MonoSolution *my_solution);
+bool InsertOutsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution* best_solution);
+//bool ChangeOpModeLSMono_FI(MonoSolution *my_solution);
+bool ChangeOpModeLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
+//bool ChangeOpModeLSMono_BI(MonoSolution *my_solution);
+bool ChangeOpModeLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution);
 
 bool CompareMakespanMonoSolution(MonoSolution *& l, MonoSolution *& r);
 void SortByMakespanMonoSolution(vector<MonoSolution*> &set_solution);
@@ -36,5 +46,6 @@ MonoSolution *GenNeighborSol(MonoSolution *my_solution, unsigned op_neighbor);
 void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1);
 bool LS_Mono_BI(MonoSolution *my_solution, unsigned op_neighbor);
 void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1);
+void UpdateZ_STAR(vector<MonoSolution *> &set_solution);
 
 #endif // DECOMPOSITION_H

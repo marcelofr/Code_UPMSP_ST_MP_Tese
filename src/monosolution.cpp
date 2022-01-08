@@ -7,6 +7,7 @@ MonoSolution::MonoSolution():LSSolution(){
 
 MonoSolution::MonoSolution (const MonoSolution &s):LSSolution(s){
     this->objective_funtion = s.objective_funtion;
+    this->weights = s.weights;
 }
 
 MonoSolution::~MonoSolution(){}
@@ -121,7 +122,7 @@ void MonoSolution::GenerateGreedySolutionWeigth()
         //for(unsigned id_machine=1; id_machine <= Instance::num_machine ; id_machine++){
             for(unsigned id_op=1; id_op <= Instance::num_mode_op ; id_op++){
                 //for(unsigned id_pos=0; id_pos <= scheduling[id_machine].size() ; id_pos++){*/
-                    GreedyChoiceWeigth(*it, best_op_mode, machine, position, diff_time, obj_job);
+                    GreedyChoiceWeigth(*it, id_op, machine, position, diff_time, obj_job);
                     if(obj_job - best_obj_job < -EPS){
                         best_machine = machine;
                         best_position = position;
