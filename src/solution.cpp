@@ -1876,10 +1876,10 @@ void Solution::InsertInsideDelta(unsigned machine, unsigned pos1, unsigned pos2)
  */
 void Solution::InsertOutside(unsigned machine1, unsigned pos1, unsigned machine2, unsigned pos2)
 {
-    if(this->scheduling[machine1].size() ==0 || this->scheduling[machine2].size()==0)
+    /*if(this->scheduling[machine1].size() ==0 || this->scheduling[machine2].size()==0)
     {
-        return;
-    }
+        //return;
+    }*/
 
     //Criar um iterator para a primeira tarefa
     auto it_job1 = this->scheduling[machine1].begin() + pos1;
@@ -1890,7 +1890,7 @@ void Solution::InsertOutside(unsigned machine1, unsigned pos1, unsigned machine2
 
     //Remover a primeira tarefa da sua antiga posição
     //this->scheduling[machine1].erase(it_job1);
-    if(it_job1 != this->scheduling[machine1].end())
+    //if(it_job1 != this->scheduling[machine1].end())
     {
       this->scheduling[machine1].erase(it_job1);
     }
