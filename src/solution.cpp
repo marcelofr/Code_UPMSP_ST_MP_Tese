@@ -167,7 +167,7 @@ void Solution::Print()
         for (auto it = scheduling[i].begin(); it != scheduling[i].end(); ++it) {
             cout << *it << "[" << job_mode_op[*it] << "]" << " ";
         }
-        cout << " (" << machine_completion_time[i] << ") " << endl;
+        cout << " (" << machine_completion_time[i] << " - " << machine_TEC[i] << ") " << endl;
     }
     cout << "Makespan: " << makeSpan << endl;
     cout << "TEC: " << TEC << endl;
@@ -619,6 +619,9 @@ void Solution::CalculateObjective()
 
         this->TEC += this->machine_TEC[i];
     }
+
+    this->makeSpan *= Instance::discretization_factor;
+    this->TEC *= Instance::discretization_factor;
 }
 
 void Solution::CalculateObjectiveDiscrete()
@@ -842,12 +845,12 @@ void Solution::Check()
 
     }
 
-    if(makespan_calc != makeSpan){
+    if(makespan_calc*Instance::discretization_factor != makeSpan){
         cout << "=========Erro==============" << endl;
         cout << "Makespan, valor esperado: " << makespan_calc << " armazenado: " << makeSpan << endl;
     }
 
-    if((tec_calc - TEC > 0.0001)){
+    if((tec_calc*Instance::discretization_factor - TEC > 0.0001)){
         cout << "=========Erro==============" << endl;
         cout << "Custo de energia, valor esperado: " << tec_calc << " armazenado: " << TEC << endl;
     }
@@ -1781,10 +1784,17 @@ void Solution::InsertRandomPosition(unsigned new_job)
  */
 void Solution::SwapInside(unsigned machine, unsigned pos_job1, unsigned pos_job2)
 {
-    unsigned aux;
-    aux = this->scheduling[machine][pos_job1];
+    unsigned temp, job1, job2;
+
+    job1 = this->scheduling[machine][pos_job1];
+    job2 = this->scheduling[machine][pos_job2];
+    temp = this->job_mode_op[job1];
+    this->job_mode_op[job1] = this->job_mode_op[job2];
+    this->job_mode_op[job2] = temp;
+
+    temp = this->scheduling[machine][pos_job1];
     this->scheduling[machine][pos_job1] = this->scheduling[machine][pos_job2];
-    this->scheduling[machine][pos_job2] = aux;
+    this->scheduling[machine][pos_job2] = temp;
 }
 
 /*
@@ -1808,10 +1818,18 @@ void Solution::SwapInsideDelta(unsigned machine, unsigned pos_job1, unsigned pos
  */
 void Solution::SwapOutside(unsigned machine1, unsigned pos_job1, unsigned machine2, unsigned pos_job2)
 {
-    unsigned aux;
-    aux = this->scheduling[machine1][pos_job1];
+    unsigned temp, job1, job2;
+
+    job1 = this->scheduling[machine1][pos_job1];
+    job2 = this->scheduling[machine2][pos_job2];
+    temp = this->job_mode_op[job1];
+    this->job_mode_op[job1] = this->job_mode_op[job2];
+    this->job_mode_op[job2] = temp;
+
+    temp = this->scheduling[machine1][pos_job1];
     this->scheduling[machine1][pos_job1] = this->scheduling[machine2][pos_job2];
-    this->scheduling[machine2][pos_job2] = aux;
+    this->scheduling[machine2][pos_job2] = temp;
+
 }
 
 /*
@@ -1839,21 +1857,29 @@ void Solution::SwapOutsideDelta(unsigned machine1, unsigned pos_job1, unsigned m
 void Solution::InsertInside(unsigned machine, unsigned pos1, unsigned pos2)
 {
 
-    unsigned aux;
-    aux = this->scheduling[machine][pos1];
+    unsigned temp, job1, job2;
+
+    job1 = this->scheduling[machine][pos1];
+    job2 = this->scheduling[machine][pos2];
+    temp = this->job_mode_op[job1];
+    this->job_mode_op[job1] = this->job_mode_op[job2];
+    this->job_mode_op[job2] = temp;
+
+    temp = this->scheduling[machine][pos1];
+
     if(pos1 < pos2){
         unsigned i;
         for(i = pos1; i < pos2; i++){
             this->scheduling[machine][i] = this->scheduling[machine][i+1];
         }
-        this->scheduling[machine][i] = aux;
+        this->scheduling[machine][i] = temp;
     }
     else{
         unsigned i;
         for(i = pos1; i > pos2; i--){
             this->scheduling[machine][i] = this->scheduling[machine][i-1];
         }
-        this->scheduling[machine][i] = aux;
+        this->scheduling[machine][i] = temp;
     }
 }
 
@@ -1880,6 +1906,14 @@ void Solution::InsertOutside(unsigned machine1, unsigned pos1, unsigned machine2
     {
         //return;
     }*/
+
+    unsigned temp, job1, job2;
+
+    job1 = this->scheduling[machine1][pos1];
+    job2 = this->scheduling[machine2][pos2];
+    temp = this->job_mode_op[job1];
+    this->job_mode_op[job1] = this->job_mode_op[job2];
+    this->job_mode_op[job2] = temp;
 
     //Criar um iterator para a primeira tarefa
     auto it_job1 = this->scheduling[machine1].begin() + pos1;
