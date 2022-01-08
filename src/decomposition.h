@@ -6,28 +6,16 @@
 #include <algorithm>
 #include "common_basic.h"
 
+bool SwapInsideLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type=0);
 
 
-//bool SwapInsideLSMono_FI(MonoSolution *my_solution);
-bool SwapInsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
-//bool SwapInsideLSMono_BI(MonoSolution *my_solution);
-bool SwapInsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution);
-//bool SwapOutsideLSMono_FI(MonoSolution *my_solution);
-//bool SwapOutsideLSMono_BI(MonoSolution *my_solution);
-bool SwapOutsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution);
-bool SwapOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
-//bool InsertInsideLSMono_FI(MonoSolution *my_solution);
-bool InsertInsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
-//bool InsertInsideLSMono_BI(MonoSolution *my_solution);
-bool InsertInsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution);
-//bool InsertOutsideLSMono_FI(MonoSolution *my_solution);
-bool InsertOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution* best_solution);
-//bool InsertOutsideLSMono_BI(MonoSolution *my_solution);
-bool InsertOutsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution* best_solution);
-//bool ChangeOpModeLSMono_FI(MonoSolution *my_solution);
-bool ChangeOpModeLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
-//bool ChangeOpModeLSMono_BI(MonoSolution *my_solution);
-bool ChangeOpModeLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution);
+bool SwapOutsideLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type=0);
+
+bool InsertInsideLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type=0);
+
+bool InsertOutsideLSMono(MonoSolution *neighbor_solution, const MonoSolution* best_solution, unsigned type=0);
+
+bool ChangeOpModeLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type=0);
 
 bool CompareMakespanMonoSolution(MonoSolution *& l, MonoSolution *& r);
 void SortByMakespanMonoSolution(vector<MonoSolution*> &set_solution);

@@ -6,29 +6,19 @@
  * no conjunto não-dominado (first improvement), ou quando percorrer toda a vizinhança
  * Ele retorna verdadeiro, caso consiga gerar um vizinho melhor
  */
-//MonoSolution *neighbor_solution, MonoSolution *best_solution
-bool SwapInsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution)
+bool SwapInsideLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type)
 {
     unsigned long num_job_maq;
+    double best_objective_funtion;
+    bool improve = false;
 
     const MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    ///MonoSolution *best_neighbor_solution = new MonoSolution(*neighbor_solution);
-
-    MonoSolution *best_solution_copy = new MonoSolution(*best_solution);
-    //*best_solution_copy = *best_solution;
-
-    //MonoSolution *neighbor_solution = new MonoSolution();
-
-    //neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-    //Criar uma cópia da solução
-    //*neighbor_solution = *my_solution;
-
-    //*best_neighbor_solution = *neighbor_solution;
+    MonoSolution *neighbor_sol_best = new MonoSolution(*neighbor_solution);
 
     //Para cada máquina i de 1 à n
     for (unsigned i = 1; i <= Instance::num_machine; i++) {
-    //unsigned i = neighbor_sol->GetMakespanMachine();
+
+        //unsigned i = neighbor_sol->GetMakespanMachine();
         num_job_maq = neighbor_solution->scheduling[i].size();
 
         if(num_job_maq < 2){
@@ -47,168 +37,45 @@ bool SwapInsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *be
                 neighbor_solution->CalculateObjective();
                 neighbor_solution->CalculeMonoObjectiveTchebycheff();
 
-                ///best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
+                neighbor_sol_best->CalculeMonoObjectiveTchebycheff();
 
-                ///if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-                //if(neighbor_solution < best_neighbor_solution){
+                //Verificar se houve melhora local
+                if(neighbor_solution->objective_funtion - neighbor_sol_best->objective_funtion < -EPS){
 
-                    ///*best_neighbor_solution = *neighbor_solution;
+                    *neighbor_sol_best = *neighbor_solution;
 
-                    best_solution_copy->CalculeMonoObjectiveTchebycheff();
+                    best_objective_funtion = best_solution->weights.first*(double(best_solution->makeSpan)/double(Z_STAR::makespan))+
+                                            best_solution->weights.second*(double(best_solution->TEC)/double(Z_STAR::TEC));
 
-                    //Verifica se a solução vizinha é melhor que a solução corrente
-                    //Caso afirmativo, então retorna true, senão continua a busca
-                    //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                    if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                    ///if(neighbor_solution < best_solution){
-                        //*neighbor_solution = *neighbor_sol;
-                        //delete neighbor_sol;
+                    //Verificar se houve melhora global
+                    if(neighbor_solution->objective_funtion - best_objective_funtion < -EPS){
 
-                        //*neighbor_solution = *neighbor_sol_ref;
+                        if(type == 0){
 
-                        delete neighbor_sol_ref;
-                        delete best_solution_copy;
-                        ///delete best_neighbor_solution;
+                            delete neighbor_sol_ref;
+                            delete neighbor_sol_best;
 
-                        return true;
+                            return true;
+                        }
+                        else{
+                            improve = true;
+                        }
                     }
-                ///}
-                else{
-                    *neighbor_solution = *neighbor_sol_ref;
+
                 }
-
-
-
-                //Defaz a alteração
-                //neighbor_sol->SwapInsideDelta(i, k, j);
-                //neighbor_solution->SwapInside(i, k, j);
-
-            }
-
-            /*neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-            neighbor_sol->CalculateObjectiveMachine(i);*/
-        }
-    }
-
-    ///*neighbor_solution = *best_neighbor_solution;
-
-    /*neighbor_solution->CalculateShorterTimeHorizon();
-    neighbor_solution->CalculateObjective();*/
-    //delete neighbor_sol;
-    delete neighbor_sol_ref;
-    delete best_solution_copy;
-    ///delete best_neighbor_solution;
-    //delete best_solution_copy;
-    //Retorna falso, caso não consiga encontrar um vizinho melhor
-    return false;
-}
-
-/*
- * Método que gerar vizinhos através da realização de  trocas de tarefas em uma máquina.
- * Ele gera novos vizinhos e para quanto percorrer toda a vizinhança (best improvement)
- * Ele retorna verdadeiro, caso consiga gerar um vizinho melhor
- */
-bool SwapInsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution)
-{
-    unsigned long num_job_maq;
-
-    const MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    //MonoSolution *best_solution_copy = new MonoSolution();
-    MonoSolution *best_neighbor_solution = new MonoSolution();
-    //*best_solution_copy = *best_solution;
-
-    //MonoSolution *neighbor_solution = new MonoSolution();
-
-    //neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-    //Criar uma cópia da solução
-    //*neighbor_solution = *my_solution;
-
-    *best_neighbor_solution = *neighbor_solution;
-
-    //Para cada máquina i de 1 à n
-    for (unsigned i = 1; i <= Instance::num_machine; i++) {
-    //unsigned i = neighbor_sol->GetMakespanMachine();
-        num_job_maq = neighbor_solution->scheduling[i].size();
-
-        if(num_job_maq < 2){
-            continue;
-        }
-
-        //Para cada tarefa j da máquina i
-        for (unsigned j = 0; j < num_job_maq-1 ; j++) {
-
-            //Para cada tarefa k da máquina i
-            for (unsigned k = j+1; k < num_job_maq ; ++k) {
 
                 *neighbor_solution = *neighbor_sol_ref;
-
-                //Gerar vizinho com a troca de tarefas em uma máquina
-                neighbor_solution->SwapInside(i, j, k);
-                neighbor_solution->CalculateShorterTimeHorizon();
-                neighbor_solution->CalculateObjective();
-                neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-
-                    *best_neighbor_solution = *neighbor_solution;
-
-                    //*neighbor_sol_ref = *neighbor_solution;
-
-                    /*best_solution_copy->CalculeMonoObjectiveTchebycheff();
-
-                    //Verifica se a solução vizinha é melhor que a solução corrente
-                    //Caso afirmativo, então retorna true, senão continua a busca
-                    //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                    if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                        //*neighbor_solution = *neighbor_sol;
-                        //delete neighbor_sol;
-
-                        //*neighbor_solution = *neighbor_sol_ref;
-
-                        delete neighbor_sol_ref;
-                        delete best_solution_copy;
-
-                        return true;
-                    }*/
-                }
-                else{
-                    *neighbor_solution = *neighbor_sol_ref;
-                }
-
-                //Defaz a alteração
-                //neighbor_sol->SwapInsideDelta(i, k, j);
-                //neighbor_solution->SwapInside(i, k, j);
-
             }
-
-            /*neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-            neighbor_sol->CalculateObjectiveMachine(i);*/
         }
     }
 
+    *neighbor_solution = *neighbor_sol_best;
 
-
-    //*neighbor_solution = *best_neighbor_solution;
-
-    /*neighbor_solution->CalculateShorterTimeHorizon();
-    neighbor_solution->CalculateObjective();*/
-    //delete neighbor_sol;
     delete neighbor_sol_ref;
-    //delete best_solution_copy;
+    delete neighbor_sol_best;
+
     //Retorna falso, caso não consiga encontrar um vizinho melhor
-
-    *neighbor_solution = *best_neighbor_solution;
-
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();
-    best_solution->CalculeMonoObjectiveTchebycheff();
-    if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-        return true;
-    }
-
-    return false;
+    return improve;
 }
 
 /*
@@ -219,29 +86,18 @@ bool SwapInsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_sol
  * neighbor_solution é a solução que será modificada
  * best_solution é a solução de referência
  */
-bool SwapOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution)
+bool SwapOutsideLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type)
 {
     unsigned long num_job_maq1, num_job_maq2;
+    double best_objective_funtion;
+    bool improve = false;
 
     const MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    //MonoSolution *best_neighbor_solution = new MonoSolution(*neighbor_solution);
-
-    MonoSolution *best_solution_copy = new MonoSolution(*best_solution);
-    //*best_solution_copy = *best_solution;
-
-    //MonoSolution *neighbor_sol = new MonoSolution();
-
-    //best_solution->CalculeMonoObjectiveTchebycheff();
-
-    //*neighbor_solution = *best_solution;
-
-    //*neighbor_sol_ref = *neighbor_solution;
-
-    //*best_neighbor_solution = *neighbor_solution;
+    MonoSolution *neighbor_sol_best = new MonoSolution(*neighbor_solution);
 
     //Para cada máquina i1 de 1 à n
     for (unsigned i1 = 1; i1 <= Instance::num_machine; i1++) {
-    //unsigned i1 = neighbor_solution->GetMakespanMachine();
+
         num_job_maq1 = neighbor_sol_ref->scheduling[i1].size();
 
         if(num_job_maq1<1){
@@ -249,10 +105,8 @@ bool SwapOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *b
         }
 
         //Para cada máquina i2 de i1+1 à n
-        //for (unsigned i2 = i1+1; i2 <= Instance::num_machine; i2++) {
         for (unsigned i2 = 1; i2 <= Instance::num_machine; i2++) {
 
-            //if(i1 != i2){
             num_job_maq2 = neighbor_sol_ref->scheduling[i2].size();
 
             if(num_job_maq2<1 || i1 == i2){
@@ -266,190 +120,53 @@ bool SwapOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *b
                 for (unsigned k = 0; k < num_job_maq2; ++k) {
 
                     //Gerar vizinho com a troca de tarefas entre máquinas
-                    //neighbor_solution->SwapOutsideDelta(i1, j, i2, k);
                     neighbor_solution->SwapOutside(i1, j, i2, k);
                     neighbor_solution->CalculateShorterTimeHorizon();
                     neighbor_solution->CalculateObjective();
                     neighbor_solution->CalculeMonoObjectiveTchebycheff();
 
-                    ///best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
+                    neighbor_sol_best->CalculeMonoObjectiveTchebycheff();
 
-                    ///if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-                    ///if(neighbor_solution < best_neighbor_solution){
+                    //Verificar se houve melhora local
+                    if(neighbor_solution->objective_funtion - neighbor_sol_best->objective_funtion < -EPS){
 
-                        ///*best_neighbor_solution = *neighbor_solution;
+                        *neighbor_sol_best = *neighbor_solution;
 
-                        best_solution_copy->CalculeMonoObjectiveTchebycheff();
+                        best_objective_funtion = best_solution->weights.first*(double(best_solution->makeSpan)/double(Z_STAR::makespan))+
+                                                best_solution->weights.second*(double(best_solution->TEC)/double(Z_STAR::TEC));
 
-                        //Verifica se a solução vizinha é melhor que a solução corrente
-                        //Caso afirmativo, então retorna true, senão continua a busca
-                        //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                        if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                            //*best_solution = *neighbor_solution;
-                            //delete neighbor_solution;
+                        //Verificar se houve melhora global
+                        if(neighbor_solution->objective_funtion - best_objective_funtion < -EPS){
 
-                            //*neighbor_solution = *neighbor_sol_ref;
-
-                            delete neighbor_sol_ref;
-                            delete best_solution_copy;
-                            ///delete best_neighbor_solution;
-
-                            return true;
-                        }
-
-                    ///}
-                    else{
-                        *neighbor_solution = *neighbor_sol_ref;
-                    }
-
-                    //neighbor_solution->SwapOutsideDelta(i2, k, i1, j);
-                    //neighbor_solution->SwapOutside(i2, k, i1, j);
-                    //*neighbor_solution = *neighbor_sol_ref;
-                }
-
-                /*neighbor_solution->CalculateShorterTimeHorizonMachine(i1);
-                neighbor_solution->CalculateObjectiveMachine(i1);
-
-                neighbor_solution->CalculateShorterTimeHorizonMachine(i2);
-                neighbor_solution->CalculateObjectiveMachine(i2);*/
-            }
-            //}
-
-        }
-    }
-
-
-
-    /*best_neighbor_solution->CalculateShorterTimeHorizon();
-    best_neighbor_solution->CalculateObjective();
-    best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
-    *neighbor_solution = *best_neighbor_solution;*/
-    //delete neighbor_sol;
-    //*neighbor_solution = *best_neighbor_solution;
-
-    delete neighbor_sol_ref;
-    ///delete best_neighbor_solution;
-    delete best_solution_copy;
-    //Retorna falso, caso não consiga encontrar um vizinho melhor
-    return false;
-}
-
-/*
- * Método que gerar vizinhos através da realização de  trocas de tarefas entre máquina.
- * Ele gera novos vizinhos e para quanto percorrer toda a vizinhança (best improvement)
- * Ele retorna verdadeiro, caso consiga gerar um vizinho melhor
- */
-bool SwapOutsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution)
-{
-    unsigned long num_job_maq1, num_job_maq2;
-
-    const MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    //MonoSolution *best_solution_copy = new MonoSolution();
-    MonoSolution *best_neighbor_solution = new MonoSolution();
-    //*best_solution_copy = *best_solution;
-
-    //MonoSolution *neighbor_sol = new MonoSolution();
-
-    //best_solution->CalculeMonoObjectiveTchebycheff();
-
-    //*neighbor_solution = *best_solution;
-
-    //*neighbor_sol_ref = *neighbor_solution;
-
-    *best_neighbor_solution = *neighbor_solution;
-
-    //Para cada máquina i1 de 1 à n
-    for (unsigned i1 = 1; i1 <= Instance::num_machine; i1++) {
-    //unsigned i1 = neighbor_solution->GetMakespanMachine();
-        num_job_maq1 = neighbor_sol_ref->scheduling[i1].size();
-
-        //Para cada máquina i2 de i1+1 à n
-        //for (unsigned i2 = i1+1; i2 <= Instance::num_machine; i2++) {
-        for (unsigned i2 = 1; i2 <= Instance::num_machine; i2++) {
-
-            if(i1 != i2){
-                num_job_maq2 = neighbor_sol_ref->scheduling[i2].size();
-
-                //Para cada tarefa j da máquina i1
-                for (unsigned j = 0; j < num_job_maq1; j++) {
-
-                    //Para cada tarefa k da máquina i2
-                    for (unsigned k = 0; k < num_job_maq2; ++k) {
-
-                        *neighbor_solution = *neighbor_sol_ref;
-
-                        //Gerar vizinho com a troca de tarefas entre máquinas
-                        //neighbor_solution->SwapOutsideDelta(i1, j, i2, k);
-                        neighbor_solution->SwapOutside(i1, j, i2, k);
-                        neighbor_solution->CalculateShorterTimeHorizon();
-                        neighbor_solution->CalculateObjective();
-                        neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                        best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                        if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-
-                            *best_neighbor_solution = *neighbor_solution;
-
-                            /*best_solution_copy->CalculeMonoObjectiveTchebycheff();
-
-                            //Verifica se a solução vizinha é melhor que a solução corrente
-                            //Caso afirmativo, então retorna true, senão continua a busca
-                            //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                            if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                                //*best_solution = *neighbor_solution;
-                                //delete neighbor_solution;
-
-                                //*neighbor_solution = *neighbor_sol_ref;
+                            if(type == 0){
 
                                 delete neighbor_sol_ref;
-                                delete best_solution_copy;
+                                delete neighbor_sol_best;
 
                                 return true;
-                            }*/
-                        }
-                        else{
-                            *neighbor_solution = *neighbor_sol_ref;
+                            }
+                            else{
+                                improve = true;
+                            }
                         }
 
-                        //neighbor_solution->SwapOutsideDelta(i2, k, i1, j);
-                        //neighbor_solution->SwapOutside(i2, k, i1, j);
-                        //*neighbor_solution = *neighbor_sol_ref;
                     }
 
-                    /*neighbor_solution->CalculateShorterTimeHorizonMachine(i1);
-                    neighbor_solution->CalculateObjectiveMachine(i1);
-
-                    neighbor_solution->CalculateShorterTimeHorizonMachine(i2);
-                    neighbor_solution->CalculateObjectiveMachine(i2);*/
+                    *neighbor_solution = *neighbor_sol_ref;
                 }
+
             }
 
         }
     }
 
+    *neighbor_solution = *neighbor_sol_best;
 
-
-    /*best_neighbor_solution->CalculateShorterTimeHorizon();
-    best_neighbor_solution->CalculateObjective();
-    best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
-    *neighbor_solution = *best_neighbor_solution;*/
-    //delete neighbor_sol;
     delete neighbor_sol_ref;
+    delete neighbor_sol_best;
 
-
-    *neighbor_solution = *best_neighbor_solution;
-
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();
-    best_solution->CalculeMonoObjectiveTchebycheff();
-    if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-        return true;
-    }
-
-
-    //delete best_solution_copy;
     //Retorna falso, caso não consiga encontrar um vizinho melhor
-    return false;
+    return improve;
 }
 
 /*
@@ -458,31 +175,18 @@ bool SwapOutsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_so
  * no conjunto não-dominado (first improvement), ou quando percorrer toda a vizinhança
  * Ele retorna verdadeiro, caso consiga gerar um vizinho melhor
  */
-//bool InsertInsideLSMono_FI(MonoSolution *neighbor_solution, MonoSolution *best_solution);
-bool InsertInsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution)
+bool InsertInsideLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type)
 {
     unsigned long num_job_maq;
+    double best_objective_funtion;
+    bool improve = false;
 
     const MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    ///MonoSolution *best_neighbor_solution = new MonoSolution(*neighbor_solution);
-
-    MonoSolution *best_solution_copy = new MonoSolution(*best_solution);
-    //*best_solution_copy = *best_solution;
-
-    //MonoSolution *neighbor_sol = new MonoSolution();
-
-    //neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-    //Criar uma cópia da solução
-    //*neighbor_sol = *neighbor_solution;
-
-    //*neighbor_sol_ref = *neighbor_solution;
-
-    //*best_neighbor_solution = *neighbor_solution;
+    MonoSolution *neighbor_sol_best = new MonoSolution(*neighbor_solution);
 
     //Para cada máquina i de 1 à n
     for (unsigned i = 1; i <= Instance::num_machine; i++) {
-    //unsigned i = neighbor_sol->GetMakespanMachine();
+
         num_job_maq = neighbor_solution->scheduling[i].size();
 
         if(num_job_maq<2){
@@ -501,168 +205,45 @@ bool InsertInsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *
                 neighbor_solution->CalculateObjective();
                 neighbor_solution->CalculeMonoObjectiveTchebycheff();
 
-                ///best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
+                neighbor_sol_best->CalculeMonoObjectiveTchebycheff();
 
-                ///if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-                //if(neighbor_solution < best_neighbor_solution){
+                //Verificar se houve melhora local
+                if(neighbor_solution->objective_funtion - neighbor_sol_best->objective_funtion < -EPS){
 
-                    ///*best_neighbor_solution = *neighbor_solution;
+                    *neighbor_sol_best = *neighbor_solution;
 
-                    best_solution_copy->CalculeMonoObjectiveTchebycheff();
+                    best_objective_funtion = best_solution->weights.first*(double(best_solution->makeSpan)/double(Z_STAR::makespan))+
+                                            best_solution->weights.second*(double(best_solution->TEC)/double(Z_STAR::TEC));
 
-                    //Verifica se a solução vizinha é melhor que a solução corrente
-                    //Caso afirmativo, então retorna true, senão continua a busca
-                    //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                    if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                    ///if(neighbor_solution < best_solution){
-                        //*neighbor_solution = *neighbor_sol;
-                        //delete neighbor_sol;
+                    //Verificar se houve melhora global
+                    if(neighbor_solution->objective_funtion - best_objective_funtion < -EPS){
 
-                        //*neighbor_solution = *neighbor_sol_ref;
+                        if(type == 0){
 
-                        delete neighbor_sol_ref;
-                        ///delete best_neighbor_solution;
-                        delete best_solution_copy;
+                            delete neighbor_sol_ref;
+                            delete neighbor_sol_best;
 
-                        return true;
+                            return true;
+                        }
+                        else{
+                            improve = true;
+                        }
                     }
-                ///}
-                else{
-                    *neighbor_solution = *neighbor_sol_ref;
+
                 }
 
-                //Defaz a alteração
-                //neighbor_solution->InsertInside(i, k, j);
-
-
+                *neighbor_solution = *neighbor_sol_ref;
             }
-
-            /*neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-            neighbor_sol->CalculateObjectiveMachine(i);*/
         }
     }
 
-    /*neighbor_solution->CalculateShorterTimeHorizon();
-    neighbor_solution->CalculateObjective();
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();*/
-
-    ///*neighbor_solution = *best_neighbor_solution;
+    *neighbor_solution = *neighbor_sol_best;
 
     delete neighbor_sol_ref;
-    delete best_solution_copy;
-
-    //delete neighbor_sol;
-    ///delete best_neighbor_solution;
+    delete neighbor_sol_best;
 
     //Retorna falso, caso não consiga encontrar um vizinho melhor
-    return false;
-}
-
-/*
- * Método que gerar vizinhos através da realização de inserção de tarefas em uma máquina.
- * Ele gera novos vizinhos e para quanto percorrer toda a vizinhança (best improvement)
- * Ele retorna verdadeiro, caso consiga gerar um vizinho melhor
- */
-bool InsertInsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution)
-{
-    unsigned long num_job_maq;
-
-    MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    //MonoSolution *best_solution_copy = new MonoSolution();
-    MonoSolution *best_neighbor_solution = new MonoSolution();
-    //*best_solution_copy = *best_solution;
-
-    //MonoSolution *neighbor_sol = new MonoSolution();
-
-    //neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-    //Criar uma cópia da solução
-    //*neighbor_sol = *neighbor_solution;
-
-    //*neighbor_sol_ref = *neighbor_solution;
-
-    *best_neighbor_solution = *neighbor_solution;
-
-    //Para cada máquina i de 1 à n
-    for (unsigned i = 1; i <= Instance::num_machine; i++) {
-    //unsigned i = neighbor_sol->GetMakespanMachine();
-        num_job_maq = neighbor_solution->scheduling[i].size();
-
-        //Para cada tarefa j da máquina i
-        for (unsigned j = 0; j < num_job_maq-1 && num_job_maq>0; j++) {
-
-            //Para cada tarefa k da máquina i
-            for (unsigned k = j+1; k < num_job_maq; ++k) {
-
-                *neighbor_solution = *neighbor_sol_ref;
-
-                //Gerar vizinho com a troca de tarefas em uma máquina
-                neighbor_solution->InsertInside(i, j, k);
-                neighbor_solution->CalculateShorterTimeHorizon();
-                neighbor_solution->CalculateObjective();
-                neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-
-                    *best_neighbor_solution = *neighbor_solution;
-
-                    /**best_neighbor_solution = *neighbor_solution;
-
-                    best_solution_copy->CalculeMonoObjectiveTchebycheff();
-
-                    //Verifica se a solução vizinha é melhor que a solução corrente
-                    //Caso afirmativo, então retorna true, senão continua a busca
-                    //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                    if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                        //*neighbor_solution = *neighbor_sol;
-                        //delete neighbor_sol;
-
-                        //*neighbor_solution = *neighbor_sol_ref;
-
-                        delete neighbor_sol_ref;
-                        delete best_solution_copy;
-
-                        return true;
-                    }*/
-                }
-                else{
-                    *neighbor_solution = *neighbor_sol_ref;
-                }
-
-                //Defaz a alteração
-                //neighbor_solution->InsertInside(i, k, j);
-                *neighbor_solution = *neighbor_sol_ref;
-
-            }
-
-            /*neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-            neighbor_sol->CalculateObjectiveMachine(i);*/
-        }
-    }
-
-    /*neighbor_solution->CalculateShorterTimeHorizon();
-    neighbor_solution->CalculateObjective();
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();*/
-
-    //*neighbor_solution = *best_neighbor_solution;
-
-    delete neighbor_sol_ref;
-    //delete best_solution_copy;
-
-    *neighbor_solution = *best_neighbor_solution;
-
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();
-    best_solution->CalculeMonoObjectiveTchebycheff();
-    if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-        return true;
-    }
-
-    //delete neighbor_sol;
-
-    //Retorna falso, caso não consiga encontrar um vizinho melhor
-    return false;
+    return improve;
 }
 
 /*
@@ -672,27 +253,17 @@ bool InsertInsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_s
  * Ele retorna verdadeiro, caso consiga gerar um vizinho melhor
  * InsertOutsideLSMono_FI(neighbor_solution, best_solution);
  */
-bool InsertOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution* best_solution)
+bool InsertOutsideLSMono(MonoSolution *neighbor_solution, const MonoSolution* best_solution, unsigned type)
 {
     unsigned num_job_maq1, num_job_maq2;
+    double best_objective_funtion;
+    bool improve = false;
 
     const MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    MonoSolution *best_solution_copy = new MonoSolution(* best_solution);
-    //MonoSolution *best_neighbor_solution = new MonoSolution(*neighbor_solution);
-    //*best_solution_copy = *best_solution;
-    //MonoSolution *neighbor_sol = new MonoSolution();
-
-    //neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-    //*neighbor_sol = *neighbor_solution;
-
-    //Para cada máquina i1 de 1 à n
-
-    //*neighbor_sol_ref = *neighbor_solution;
-    //*best_neighbor_solution = *neighbor_solution;
+    MonoSolution *neighbor_sol_best = new MonoSolution(*neighbor_solution);
 
     for (unsigned i1 = 1; i1 <= Instance::num_machine; i1++) {
-    //unsigned i1 = neighbor_sol->GetMakespanMachine();
+
         num_job_maq1 = neighbor_sol_ref->scheduling[i1].size();
 
         if(num_job_maq1 < 1){
@@ -700,7 +271,6 @@ bool InsertOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution*
         }
 
         //Para cada máquina i2 de i1+1 à n
-        //for (unsigned i2 = i1+1; i2 <= Instance::num_machine; i2++) {
         for (unsigned i2 = 1; i2 <= Instance::num_machine; i2++) {
 
             if(i1 == i2){
@@ -721,187 +291,51 @@ bool InsertOutsideLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution*
                     neighbor_solution->CalculateObjective();
                     neighbor_solution->CalculeMonoObjectiveTchebycheff();
 
-                    ///best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
+                    neighbor_sol_best->CalculeMonoObjectiveTchebycheff();
 
-                    ///if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-                    ///if(neighbor_solution < best_neighbor_solution){
+                    //Verificar se houve melhora local
+                    if(neighbor_solution->objective_funtion - neighbor_sol_best->objective_funtion < -EPS){
 
-                        ///*best_neighbor_solution = *neighbor_solution;
+                        *neighbor_sol_best = *neighbor_solution;
 
-                        best_solution_copy->CalculeMonoObjectiveTchebycheff();
+                        best_objective_funtion = best_solution->weights.first*(double(best_solution->makeSpan)/double(Z_STAR::makespan))+
+                                                best_solution->weights.second*(double(best_solution->TEC)/double(Z_STAR::TEC));
 
-                        //Verifica se a solução vizinha é melhor que a solução corrente
-                        //Caso afirmativo, então retorna true, senão continua a busca
-                        //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                        if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                        ///if(neighbor_solution < best_solution){
-                            //*neighbor_solution = *neighbor_sol;
-                            //delete neighbor_sol;
-                            //*neighbor_solution = *neighbor_sol_ref;
+                        //Verificar se houve melhora global
+                        if(neighbor_solution->objective_funtion - best_objective_funtion < -EPS){
 
-                            //*neighbor_solution = *neighbor_sol_ref;
-
-                            delete best_solution_copy;
-                            delete neighbor_sol_ref;
-                            ///delete best_neighbor_solution;
-                            return true;
-                        }
-                    ///}
-                    else{
-                        *neighbor_solution = *neighbor_sol_ref;
-                    }
-
-                    //neighbor_sol->InsertOutsideDelta(i2, k, i1, j);
-                    //neighbor_solution->InsertOutsideDelta(i2, k, i1, j);
-                    //*neighbor_solution = *neighbor_sol_ref;
-
-                }
-
-                /*neighbor_sol->CalculateShorterTimeHorizonMachine(i1);
-                neighbor_sol->CalculateObjectiveMachine(i1);
-
-                neighbor_sol->CalculateShorterTimeHorizonMachine(i2);
-                neighbor_sol->CalculateObjectiveMachine(i2);*/
-            }
-            //}
-        }
-    }
-
-    //*neighbor_solution = *neighbor_sol_ref;
-
-    /*neighbor_solution->CalculateShorterTimeHorizon();
-    neighbor_solution->CalculateObjective();
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();*/
-
-    //delete neighbor_sol;
-
-    //*neighbor_solution = *best_neighbor_solution;
-
-    delete neighbor_sol_ref;
-    delete best_solution_copy;
-
-    //Retorna falso, caso não consiga encontrar um vizinho melhor
-    return false;
-}
-
-/*
- * Método que gerar vizinhos através da realização de inserção de tarefas entre máquina.
- * Ele gera novos vizinhos e para quanto percorrer toda a vizinhança (best improvement)
- * Ele retorna verdadeiro, caso consiga gerar um vizinho melhor
- */
-bool InsertOutsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution* best_solution)
-{
-    unsigned num_job_maq1, num_job_maq2;
-
-    MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    //MonoSolution *best_solution_copy = new MonoSolution();
-    MonoSolution *best_neighbor_solution = new MonoSolution();
-    //*best_solution_copy = *best_solution;
-    //MonoSolution *neighbor_sol = new MonoSolution();
-
-    //neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-    //*neighbor_sol = *neighbor_solution;
-
-    //Para cada máquina i1 de 1 à n
-
-    //*neighbor_sol_ref = *neighbor_solution;
-    *best_neighbor_solution = *neighbor_solution;
-
-    for (unsigned i1 = 1; i1 <= Instance::num_machine; i1++) {
-    //unsigned i1 = neighbor_sol->GetMakespanMachine();
-        num_job_maq1 = neighbor_solution->scheduling[i1].size();
-
-        //Para cada máquina i2 de i1+1 à n
-        //for (unsigned i2 = i1+1; i2 <= Instance::num_machine; i2++) {
-        for (unsigned i2 = 1; i2 <= Instance::num_machine; i2++) {
-
-            if(i1 != i2){
-                num_job_maq2 = neighbor_solution->scheduling[i2].size();
-
-                //Para cada tarefa j da máquina i1
-                for (unsigned j = 0; j < num_job_maq1; j++) {
-
-                    //Para cada tarefa k da máquina i2
-                    for (unsigned k = 0; k <= num_job_maq2; ++k) {
-
-                        *neighbor_solution = *neighbor_sol_ref;
-
-                        //Gerar vizinho com a troca de tarefas entre máquinas
-                        neighbor_solution->InsertOutside(i1, j, i2, k);
-                        neighbor_solution->CalculateShorterTimeHorizon();
-                        neighbor_solution->CalculateObjective();
-                        neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                        best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                        if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-
-                            *best_neighbor_solution = *neighbor_solution;
-
-                            /**best_neighbor_solution = *neighbor_solution;
-
-                            best_solution_copy->CalculeMonoObjectiveTchebycheff();
-
-                            //Verifica se a solução vizinha é melhor que a solução corrente
-                            //Caso afirmativo, então retorna true, senão continua a busca
-                            //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                            if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                                //*neighbor_solution = *neighbor_sol;
-                                //delete neighbor_sol;
-                                //*neighbor_solution = *neighbor_sol_ref;
-
-                                //*neighbor_solution = *neighbor_sol_ref;
+                            if(type == 0){
 
                                 delete neighbor_sol_ref;
-                                delete best_solution_copy;
-                                return true;
-                            }*/
-                        }
-                        else{
-                            *neighbor_solution = *neighbor_sol_ref;
-                        }
+                                delete neighbor_sol_best;
 
-                        //neighbor_sol->InsertOutsideDelta(i2, k, i1, j);
-                        //neighbor_solution->InsertOutsideDelta(i2, k, i1, j);
-                        //*neighbor_solution = *neighbor_sol_ref;
+                                return true;
+                            }
+                            else{
+                                improve = true;
+                            }
+                        }
 
                     }
 
-                    /*neighbor_sol->CalculateShorterTimeHorizonMachine(i1);
-                    neighbor_sol->CalculateObjectiveMachine(i1);
+                    *neighbor_solution = *neighbor_sol_ref;
 
-                    neighbor_sol->CalculateShorterTimeHorizonMachine(i2);
-                    neighbor_sol->CalculateObjectiveMachine(i2);*/
                 }
+
             }
         }
     }
 
-    //*neighbor_solution = *neighbor_sol_ref;
-
-    /*neighbor_solution->CalculateShorterTimeHorizon();
-    neighbor_solution->CalculateObjective();
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();*/
-
-    //delete neighbor_sol;
-
-    //*neighbor_solution = *best_neighbor_solution;
+    *neighbor_solution = *neighbor_sol_best;
 
     delete neighbor_sol_ref;
-    //delete best_solution_copy;
-
-    *neighbor_solution = *best_neighbor_solution;
-
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();
-    best_solution->CalculeMonoObjectiveTchebycheff();
-    if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-        return true;
-    }
+    delete neighbor_sol_best;
 
     //Retorna falso, caso não consiga encontrar um vizinho melhor
-    return false;
+    return improve;
 }
+
+
 
 /*
  * Método que gerar vizinhos através da realização da troca do modo de operação das tarefas
@@ -909,228 +343,69 @@ bool InsertOutsideLSMono_BI(MonoSolution *neighbor_solution, MonoSolution* best_
  * no conjunto não-dominado (first improvement), ou até percorrer toda a vizinhança
  * Ele retorna verdadeiro, caso consiga adicionar um vizinho ao conjunto não-dominado
  */
-bool ChangeOpModeLSMono_FI(MonoSolution *neighbor_solution, const MonoSolution *best_solution)
+bool ChangeOpModeLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type)
 {
-    unsigned long num_job_maq/*, job, old_op*/;
+    unsigned long num_job_maq;
+    double best_objective_funtion;
+    bool improve = false;
 
     const MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    MonoSolution *best_solution_copy = new MonoSolution();
-    //MonoSolution *best_neighbor_solution = new MonoSolution(*neighbor_solution);
-    //*best_solution_copy = *best_solution;
-
-    //MonoSolution *neighbor_sol = new MonoSolution();
-
-    //neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-    //*neighbor_sol = *neighbor_solution;
-
-    //*neighbor_sol_ref = *neighbor_solution;
-
-    //*best_neighbor_solution = *neighbor_solution;
+    MonoSolution *neighbor_sol_best = new MonoSolution(*neighbor_solution);
 
     //Para cada máquina i de 1 à n
     for (unsigned i = 1; i <= Instance::num_machine; i++) {
+
         num_job_maq = neighbor_solution->scheduling[i].size();
 
         //Para cada tarefa j da máquina i
         for (unsigned j = 0; j < num_job_maq; j++) {
 
-            //job = neighbor_solution->scheduling[i][j];
-
-            //old_op = best_solution->job_mode_op[job];
-
             //Para cada modo de operração k
             for (unsigned k = 1; k <= Instance::num_mode_op; ++k) {
 
+                neighbor_solution->ChangeModeOpJob(i, j, k);
+                neighbor_solution->CalculateShorterTimeHorizon();
+                neighbor_solution->CalculateObjective();
+                neighbor_solution->CalculeMonoObjectiveTchebycheff();
 
-                //if(old_op != k){
+                neighbor_sol_best->CalculeMonoObjectiveTchebycheff();
 
-                    //neighbor_solution->ChangeModeOpJobDelta(i, j, k);
-                    neighbor_solution->ChangeModeOpJob(i, j, k);
-                    neighbor_solution->CalculateShorterTimeHorizon();
-                    neighbor_solution->CalculateObjective();
-                    neighbor_solution->CalculeMonoObjectiveTchebycheff();
+                //Verificar se houve melhora local
+                if(neighbor_solution->objective_funtion - neighbor_sol_best->objective_funtion < -EPS){
 
-                    ///best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
+                    *neighbor_sol_best = *neighbor_solution;
 
-                    ///if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-                    ///if(neighbor_solution < best_neighbor_solution){
+                    best_objective_funtion = best_solution->weights.first*(double(best_solution->makeSpan)/double(Z_STAR::makespan))+
+                                            best_solution->weights.second*(double(best_solution->TEC)/double(Z_STAR::TEC));
 
-                        ///*best_neighbor_solution = *neighbor_solution;
+                    //Verificar se houve melhora global
+                    if(neighbor_solution->objective_funtion - best_objective_funtion < -EPS){
 
-                        best_solution_copy->CalculeMonoObjectiveTchebycheff();
-
-                        //Verifica se a solução vizinha é melhor que a solução corrente
-                        //Caso afirmativo, então retorna true, senão continua a busca
-                        //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                        if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                        ///if(*neighbor_solution < *best_solution){
-                            //*neighbor_solution = *neighbor_sol;
-                            //delete neighbor_sol;
-
-                            //*neighbor_solution = *neighbor_sol_ref;
+                        if(type == 0){
 
                             delete neighbor_sol_ref;
-                            delete best_solution_copy;
+                            delete neighbor_sol_best;
 
                             return true;
                         }
                         else{
-                            *neighbor_solution = *neighbor_sol_ref;
+                            improve = true;
                         }
-                    ///}
+                    }
 
-                    /*if(neighbor_solution->objective_funtion - old_obj >  -EPS){
-                        //neighbor_sol->ChangeModeOpJobDelta(i, j, old_op);
-                        neighbor_solution->ChangeModeOpJob(i, j, old_op);
-                        neighbor_solution->CalculateShorterTimeHorizon();
-                        neighbor_solution->CalculateObjective();
-                        neighbor_solution->CalculeMonoObjectiveTchebycheff();
-                    }*/
-
-
-                    //*neighbor_solution = *neighbor_sol_ref;
-
-
-                //}
-
-            }
-
-            /*neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-            neighbor_sol->CalculateObjectiveMachine(i);*/
-        }
-    }
-
-    /*neighbor_solution->CalculateShorterTimeHorizon();
-    neighbor_solution->CalculateObjective();
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();*/
-
-    //delete neighbor_sol;
-    //*neighbor_solution = *best_neighbor_solution;
-
-    delete neighbor_sol_ref;
-    delete best_solution_copy;
-
-    //Retorna falso, caso não consiga encontrar um vizinho melhor
-    return false;
-}
-
-/*
- * Método que gerar vizinhos através da realização da troca do modo de operação das tarefas
- * Ele gera todos os vizinhos e tenta inserir o melhor no conjunto não-dominado
- * (best improvement)
- */
-bool ChangeOpModeLSMono_BI(MonoSolution *neighbor_solution, MonoSolution *best_solution)
-{
-    unsigned long num_job_maq, job, old_op;
-
-    MonoSolution *neighbor_sol_ref = new MonoSolution(*neighbor_solution);
-    //MonoSolution *best_solution_copy = new MonoSolution();
-    MonoSolution *best_neighbor_solution = new MonoSolution();
-    //*best_solution_copy = *best_solution;
-
-    //MonoSolution *neighbor_sol = new MonoSolution();
-
-    //neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-    //*neighbor_sol = *neighbor_solution;
-
-    //*neighbor_sol_ref = *neighbor_solution;
-
-    *best_neighbor_solution = *neighbor_solution;
-
-    //Para cada máquina i de 1 à n
-    for (unsigned i = 1; i <= Instance::num_machine; i++) {
-        num_job_maq = neighbor_solution->scheduling[i].size();
-
-        //Para cada tarefa j da máquina i
-        for (unsigned j = 0; j < num_job_maq; j++) {
-
-            job = neighbor_solution->scheduling[i][j];
-
-            old_op = best_solution->job_mode_op[job];
-
-            //Para cada modo de operração k
-            for (unsigned k = 1; k <= Instance::num_mode_op; ++k) {
-
-                //if(old_op != k){
+                }
 
                 *neighbor_solution = *neighbor_sol_ref;
-
-                    //neighbor_solution->ChangeModeOpJobDelta(i, j, k);
-                    neighbor_solution->ChangeModeOpJob(i, j, k);
-                    neighbor_solution->CalculateShorterTimeHorizon();
-                    neighbor_solution->CalculateObjective();
-                    neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                    best_neighbor_solution->CalculeMonoObjectiveTchebycheff();
-
-                    if(neighbor_solution->objective_funtion - best_neighbor_solution->objective_funtion < -EPS){
-
-                        *best_neighbor_solution = *neighbor_solution;
-
-                        /*best_solution_copy->CalculeMonoObjectiveTchebycheff();
-
-                        //Verifica se a solução vizinha é melhor que a solução corrente
-                        //Caso afirmativo, então retorna true, senão continua a busca
-                        //if(neighbor_sol->objective_funtion < my_solution->objective_funtion){
-                        if(neighbor_solution->objective_funtion - best_solution_copy->objective_funtion < -EPS){
-                            //*neighbor_solution = *neighbor_sol;
-                            //delete neighbor_sol;
-
-                            //*neighbor_solution = *neighbor_sol_ref;
-
-                            delete neighbor_sol_ref;
-                            delete best_solution_copy;
-
-                            return true;
-                        }*/
-                    }
-                    else{
-                        *neighbor_solution = *neighbor_sol_ref;
-                    }
-
-                    /*if(neighbor_solution->objective_funtion - old_obj >  -EPS){
-                        //neighbor_sol->ChangeModeOpJobDelta(i, j, old_op);
-                        neighbor_solution->ChangeModeOpJob(i, j, old_op);
-                        neighbor_solution->CalculateShorterTimeHorizon();
-                        neighbor_solution->CalculateObjective();
-                        neighbor_solution->CalculeMonoObjectiveTchebycheff();
-                    }*/
-
-
-                    //*neighbor_solution = *neighbor_sol_ref;
-
-
-                //}
-
             }
-
-            /*neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-            neighbor_sol->CalculateObjectiveMachine(i);*/
         }
     }
-
-    /*neighbor_solution->CalculateShorterTimeHorizon();
-    neighbor_solution->CalculateObjective();
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();*/
-
-    //delete neighbor_sol;
-    //*neighbor_solution = *best_neighbor_solution;
+    *neighbor_solution = *neighbor_sol_best;
 
     delete neighbor_sol_ref;
-    //delete best_solution_copy;
-
-    *neighbor_solution = *best_neighbor_solution;
-
-    neighbor_solution->CalculeMonoObjectiveTchebycheff();
-    best_solution->CalculeMonoObjectiveTchebycheff();
-    if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-        return true;
-    }
+    delete neighbor_sol_best;
 
     //Retorna falso, caso não consiga encontrar um vizinho melhor
-    return false;
+    return improve;
 }
 
 
@@ -1732,7 +1007,7 @@ bool LS_Mono_BI(MonoSolution *my_solution, unsigned op_neighbor){
 
     switch (op_neighbor) {
         case 0:
-            SwapInsideLSMono_BI(current_solution, my_solution);
+            SwapInsideLSMono(current_solution, my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1741,7 +1016,7 @@ bool LS_Mono_BI(MonoSolution *my_solution, unsigned op_neighbor){
             }
         break;
         case 1:
-            SwapOutsideLSMono_BI(current_solution,my_solution);
+            SwapOutsideLSMono(current_solution,my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1750,7 +1025,7 @@ bool LS_Mono_BI(MonoSolution *my_solution, unsigned op_neighbor){
             }
         break;
         case 2:
-            InsertInsideLSMono_BI(current_solution, my_solution);
+            InsertInsideLSMono(current_solution, my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1759,7 +1034,7 @@ bool LS_Mono_BI(MonoSolution *my_solution, unsigned op_neighbor){
             }
         break;
         case 3:
-            InsertOutsideLSMono_BI(current_solution, my_solution);
+            InsertOutsideLSMono(current_solution, my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1768,7 +1043,7 @@ bool LS_Mono_BI(MonoSolution *my_solution, unsigned op_neighbor){
             }
         break;
         case 4:
-            ChangeOpModeLSMono_BI(current_solution,my_solution);
+            ChangeOpModeLSMono(current_solution,my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1796,7 +1071,7 @@ bool LS_Mono_FI(MonoSolution *my_solution, unsigned op_neighbor){
 
     switch (op_neighbor) {
         case 0:
-            SwapInsideLSMono_FI(current_solution, my_solution);
+            SwapInsideLSMono(current_solution, my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1805,7 +1080,7 @@ bool LS_Mono_FI(MonoSolution *my_solution, unsigned op_neighbor){
             }
         break;
         case 1:
-            SwapOutsideLSMono_FI(current_solution, my_solution);
+            SwapOutsideLSMono(current_solution, my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1814,7 +1089,7 @@ bool LS_Mono_FI(MonoSolution *my_solution, unsigned op_neighbor){
             }
         break;
         case 2:
-            InsertInsideLSMono_FI(current_solution, my_solution);
+            InsertInsideLSMono(current_solution, my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1823,7 +1098,7 @@ bool LS_Mono_FI(MonoSolution *my_solution, unsigned op_neighbor){
             }
         break;
         case 3:
-            InsertOutsideLSMono_FI(current_solution, my_solution);
+            InsertOutsideLSMono(current_solution, my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1832,7 +1107,7 @@ bool LS_Mono_FI(MonoSolution *my_solution, unsigned op_neighbor){
             }
         break;
         case 4:
-            ChangeOpModeLSMono_FI(current_solution, my_solution);
+            ChangeOpModeLSMono(current_solution, my_solution);
             my_solution->CalculeMonoObjectiveTchebycheff();
             current_solution->CalculeMonoObjectiveTchebycheff();
             if(current_solution->objective_funtion < my_solution->objective_funtion){
@@ -1857,61 +1132,53 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
     MonoSolution * best_solution;
     MonoSolution * cur_solution = new MonoSolution();
 
-    /*vector<int> vet_rand(non_dominated_set.set_solution.size());
-    std::iota(vet_rand.begin(), vet_rand.end(), 0);
-    random_shuffle ( vet_rand.begin(), vet_rand.end() );*/
-
     unsigned op_neighboor, intensification_level, perturbation_level;
-
     bool improve;
+    unsigned op_shake;
+    long index;
+    unsigned num_neighboor;
 
     UpdateZ_STAR(non_dominated_set.set_solution);
 
     //---------------------Manter atualizado
     //Número de vizinhanças
-    unsigned num_neighboor=5;
+    num_neighboor=5;
 
     //Nível da perturbação
     intensification_level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
 
-    unsigned op_shake;
-
-    //---------------------
-
-    long index = 0;
+    index = 0;
 
     perturbation_level = 2;
 
+    //---------------------
+
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-
-
         //Escolher a próxima solução a ser explorada
-
         index++;
         best_solution = non_dominated_set.set_solution[index%non_dominated_set.set_solution.size()];
-        //best_solution = non_dominated_set.set_solution[vet_rand[index%non_dominated_set.set_solution.size()]];
 
-        //index = rand()%non_dominated_set.set_solution.size();
-        //best_solution = non_dominated_set.set_solution[index];
-
+        //cur_solution guarda a solução perturbada
         *cur_solution = *best_solution;
 
         //Perturbar a solução corrente
         op_shake = rand()%num_neighboor;
-        //perturbation_level = 2;
         if(index%non_dominated_set.set_solution.size() == 0){
             perturbation_level++;
             if(perturbation_level > 10)
                 perturbation_level = 2;
         }
+
         Shaking(cur_solution, op_shake, perturbation_level);
+
         cur_solution->CalculateShorterTimeHorizon();
         cur_solution->CalculateObjective();
         cur_solution->CalculeMonoObjectiveTchebycheff();
 
         best_solution->CalculeMonoObjectiveTchebycheff();
 
+        //Atualizar a melhor solução
         if(cur_solution->objective_funtion - best_solution->objective_funtion < -EPS){
             *best_solution = *cur_solution;
         }
@@ -1922,46 +1189,33 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
 
         while (op_neighboor < num_neighboor && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-            //Atualizar a função objetivo
-            //cur_solution->CalculeMonoObjectiveTchebycheff();
-
-            //A solução vizinha começa como uma cópia da solução corrente
-            //*neighbor_solution = *cur_solution;
-
             improve=false;
+
             switch (op_neighboor) {
                 case 0:
                     //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
-                    improve=SwapInsideLSMono_FI(neighbor_solution, best_solution);
+                    improve=SwapInsideLSMono(neighbor_solution, best_solution, 1);
                     break;
                 case 1:
-                    improve=InsertInsideLSMono_FI(neighbor_solution, best_solution);
+                    improve=InsertInsideLSMono(neighbor_solution, best_solution, 1);
                     break;
                 case 2:
                     //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
-                    //SwapOutsideLSMono_FI(neiboor_solution, best_solution->objective_funtion);
-                    improve=SwapOutsideLSMono_FI(neighbor_solution, best_solution);
+                    improve=SwapOutsideLSMono(neighbor_solution, best_solution,1);
                     break;
                 case 3:
-                    improve=InsertOutsideLSMono_FI(neighbor_solution, best_solution);
+                    improve=InsertOutsideLSMono(neighbor_solution, best_solution,1);
                     break;
                 case 4:
                     //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
-                    improve=ChangeOpModeLSMono_FI(neighbor_solution, best_solution);
+                    improve=ChangeOpModeLSMono(neighbor_solution, best_solution,1);
                     break;
             }
 
-            //Atualizar os valores das funções objetivo
-            neighbor_solution->CalculeMonoObjectiveTchebycheff();
-            best_solution->CalculeMonoObjectiveTchebycheff();
-
             //Verificar se houve melhora
-            //if(neighbor_solution->objective_funtion - best_solution->objective_funtion < - EPS){
-            if(improve || neighbor_solution->objective_funtion - best_solution->objective_funtion < - EPS){
+            if(improve){
                 *best_solution = *neighbor_solution;
-                //op_neighboor = 0;
-
-
+                op_neighboor = 0;
             }
             else{
 
@@ -2099,22 +1353,22 @@ void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_
         switch (op) {
             case 0:
                 //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
-                improve=SwapInsideLSMono_FI(neighbor_solution, best_solution);
+                improve=SwapInsideLSMono(neighbor_solution, best_solution);
                 break;
             case 1:
-                improve=InsertInsideLSMono_FI(neighbor_solution, best_solution);
+                improve=InsertInsideLSMono(neighbor_solution, best_solution);
                 break;
             case 2:
                 //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
                 //SwapOutsideLSMono_FI(neiboor_solution, best_solution->objective_funtion);
-                improve=SwapOutsideLSMono_FI(neighbor_solution, best_solution);
+                improve=SwapOutsideLSMono(neighbor_solution, best_solution);
                 break;
             case 3:
-                improve=InsertOutsideLSMono_FI(neighbor_solution, best_solution);
+                improve=InsertOutsideLSMono(neighbor_solution, best_solution);
                 break;
             case 4:
                 //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
-                improve=ChangeOpModeLSMono_FI(neighbor_solution, best_solution);
+                improve=ChangeOpModeLSMono(neighbor_solution, best_solution);
                 break;
         }
 

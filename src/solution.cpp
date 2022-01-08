@@ -605,6 +605,7 @@ void Solution::CalculateObjective()
 
     //Calcular o custo total de energia
 
+    double tec_job;
     this->TEC = 0;
 
     for(unsigned i = 1; i <= Instance::num_machine; ++i){
@@ -613,7 +614,9 @@ void Solution::CalculateObjective()
 
         for(auto j = scheduling[i].begin(); j != scheduling[i].end(); ++j){
 
-            this->machine_TEC[i] += CalcPECToJob(i, *j, H1[*j]);
+            tec_job = CalcPECToJob(i, *j, H1[*j]);
+
+            this->machine_TEC[i] += tec_job;
 
         }
 
