@@ -1508,41 +1508,74 @@ MonoSolution *GenNeighborSol(MonoSolution *my_solution, unsigned op_neighbor)
 
     unsigned i1, i2, j1, j2, mode_op;
 
+    unsigned cont =0;
+
     //op_mov
     switch (op_neighbor) {
         //Troca na mesma máquina
         case 0:
 
+            if(Instance::num_machine < 1 ){
+                break;
+            }
+
             //Selecionar a máquina i1 com pelo menos 2 tarefas
+            cont =0;
             do {
                 i1 = 1+rand()%Instance::num_machine;
-            } while (my_solution->scheduling[i1].size() < 2);
+                cont++;
+            } while (my_solution->scheduling[i1].size() < 2 && cont < Instance::num_machine*10);
+
+            if(my_solution->scheduling[i1].size() < 2){
+                break;
+            }
 
             //Selecionar a primeira tarefa
             j1 = rand()%my_solution->scheduling[i1].size();
 
             //Selecionar a segunda tarefa, diferente da primeira
-            //do{
+            cont =0;
+            do{
                 j2 = rand()%my_solution->scheduling[i1].size();
-            //}while(j1==j2);
+                cont++;
+            }while(j1==j2 && cont < Instance::num_jobs*10);
+
+            if(j1==j2){
+                break;
+            }
 
             //Realizar troca
             my_solution->SwapInside(i1, j1, j2);
-
             break;
 
         //Troca em máquinas diferentes
         case 1:
 
+            if(Instance::num_machine < 2 ){
+                break;
+            }
+
             //Selecionar máquina i1 com pelo menos 1 tarefa
+            cont =0;
             do {
                 i1 = 1+rand()%Instance::num_machine;
-            } while (my_solution->scheduling[i1].size() < 1);
+                cont++;
+            } while (my_solution->scheduling[i1].size() < 1 && cont < Instance::num_machine*10);
+
+            if(my_solution->scheduling[i1].size() < 1){
+                break;
+            }
 
             //Selecionar máquina i2 com pelo menos 1 tarefa
-            do{
+            cont =0;
+            do {
                 i2 = 1+rand()%Instance::num_machine;
-            }while(my_solution->scheduling[i2].size() < 1);
+                cont++;
+            } while ((i1 == i2 || my_solution->scheduling[i2].size() < 1) && cont < Instance::num_machine*10);
+
+            if(my_solution->scheduling[i2].size() < 1){
+                break;
+            }
 
             //Selecionar a primeira tarefa
             j1 = rand()%my_solution->scheduling[i1].size();
@@ -1558,18 +1591,34 @@ MonoSolution *GenNeighborSol(MonoSolution *my_solution, unsigned op_neighbor)
         //Inserção na mesma máquina
         case 2:
 
+            if(Instance::num_machine < 1 ){
+                break;
+            }
+
             //Selecionar a máquina i1 com pelo menos 2 tarefas
+            cont =0;
             do {
                 i1 = 1+rand()%Instance::num_machine;
-            } while (my_solution->scheduling[i1].size() < 2);
+                cont++;
+            } while (my_solution->scheduling[i1].size() < 2 && cont < Instance::num_machine*10);
+
+            if(my_solution->scheduling[i1].size() < 2){
+                break;
+            }
 
             //Selecionar a primeira tarefa
             j1 = rand()%my_solution->scheduling[i1].size();
 
             //Selecionar a segunda tarefa, diferente da primeira
-            //do{
+            cont=0;
+            do{
                 j2 = rand()%my_solution->scheduling[i1].size();
-            //}while(j1==j2);
+                cont++;
+            }while(j1==j2 && cont < Instance::num_jobs*10);
+
+            if(j1==j2){
+                break;
+            }
 
             //Realizar inserção
             my_solution->InsertInside(i1, j1, j2);
@@ -1579,15 +1628,32 @@ MonoSolution *GenNeighborSol(MonoSolution *my_solution, unsigned op_neighbor)
         //Inserção em máquinas diferentes
         case 3:
 
+            if(Instance::num_machine < 2 ){
+                break;
+            }
+
             //Selecionar máquina i1 com pelo menos 1 tarefa
+            cont =0;
             do {
                 i1 = 1+rand()%Instance::num_machine;
-            } while (my_solution->scheduling[i1].size() < 1);
+                cont++;
+            } while (my_solution->scheduling[i1].size() < 1 && cont < Instance::num_machine*10);
+
+
+            if(my_solution->scheduling[i1].size() < 1){
+                break;
+            }
 
             //Selecionar máquina i2 com pelo menos 1 tarefa
-            do{
+            cont =0;
+            do {
                 i2 = 1+rand()%Instance::num_machine;
-            }while(my_solution->scheduling[i2].size() < 1);
+                cont++;
+            } while ((i1 == i2 || my_solution->scheduling[i2].size() < 1) && (cont < Instance::num_machine*10));
+
+            if(my_solution->scheduling[i2].size() < 1 || i1 == i2){
+                break;
+            }
 
             //Selecionar a primeira tarefa
             j1 = rand()%my_solution->scheduling[i1].size();
@@ -1596,20 +1662,27 @@ MonoSolution *GenNeighborSol(MonoSolution *my_solution, unsigned op_neighbor)
             j2 = rand()%my_solution->scheduling[i2].size();
 
             //Realizar inserção
-            if(i1 != i2)
-                my_solution->InsertOutside(i1, j1, i2, j2);
-            else
-                my_solution->InsertInside(i1, j1, j2);
+            my_solution->InsertOutside(i1, j1, i2, j2);
 
             break;
 
         //Troca de modo de operação
         case 4:
 
+            if(Instance::num_machine < 1){
+                break;
+            }
+
             //Selecionar máquina i1 com pelo menos 1 tarefa
+            cont =0;
             do {
                 i1 = 1+rand()%Instance::num_machine;
-            } while (my_solution->scheduling[i1].size() < 1);
+                cont++;
+            } while (my_solution->scheduling[i1].size() < 1 && cont < Instance::num_machine*10);
+
+            if(my_solution->scheduling[i1].size() < 1){
+                break;
+            }
 
             //Selecionar uma tarefa
             j1 = rand()%my_solution->scheduling[i1].size();
@@ -1626,6 +1699,10 @@ MonoSolution *GenNeighborSol(MonoSolution *my_solution, unsigned op_neighbor)
     my_solution->CalculateShorterTimeHorizon();
     my_solution->CalculateObjective();
     my_solution->CalculeMonoObjectiveTchebycheff();
+
+#ifdef DEBUG
+    my_solution->Check();
+#endif
 
     return my_solution;
 }
@@ -2000,13 +2077,14 @@ void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_
 
         //Perturbar a solução corrente
         op_shake = rand()%num_neighboor;
-        perturbation_level = 2 + rand()%7;
+        perturbation_level = 2 + rand()%100;
         //perturbation_level = 2;
-        *cur_solution = *best_solution;
+
         Shaking(cur_solution, op_shake, perturbation_level);
         cur_solution->CalculateShorterTimeHorizon();
         cur_solution->CalculateObjective();
         cur_solution->CalculeMonoObjectiveTchebycheff();
+        *cur_solution = *best_solution;
 
         best_solution->CalculeMonoObjectiveTchebycheff();
 
@@ -2084,14 +2162,16 @@ void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_
             //auto obj_j = max(w_j.first*(non_dominated_set.set_solution[it_j]->makeSpan - Z_STAR::makespan),
             //                w_j.second*(non_dominated_set.set_solution[it_j]->TEC - Z_STAR::TEC));
 
-            auto obj_i = w_j.first*(double(non_dominated_set.set_solution[index_s]->makeSpan) / double(Z_STAR::makespan)) +
-                    w_j.second*(double(non_dominated_set.set_solution[index_s]->TEC) / double(Z_STAR::TEC));
+            auto obj_i = w_j.first*(double(best_solution->makeSpan) / double(Z_STAR::makespan)) +
+                    w_j.second*(double(best_solution->TEC) / double(Z_STAR::TEC));
             auto obj_j = w_j.first*(double(non_dominated_set.set_solution[it_j]->makeSpan) / double(Z_STAR::makespan)) +
                     w_j.second*(double(non_dominated_set.set_solution[it_j]->TEC) / double(Z_STAR::TEC));
 
-            if(obj_i < obj_j){
-            //if(obj_i - obj_j < -EPS){
-                *non_dominated_set.set_solution[it_j] = *non_dominated_set.set_solution[index_s];
+            non_dominated_set.set_solution[it_j]->CalculeMonoObjectiveTchebycheff();
+
+            //if(obj_i < obj_j){
+            if(obj_i - obj_j < -EPS){
+                *non_dominated_set.set_solution[it_j] = *best_solution;
                 non_dominated_set.set_solution[it_j]->weights = w_j;
             }
         }

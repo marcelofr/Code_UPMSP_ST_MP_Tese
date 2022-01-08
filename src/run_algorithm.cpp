@@ -68,8 +68,10 @@ void RunAlgorithm(algorithm_data alg_data){
         #ifdef DEBUG
             it->Check();
         #endif
-        aux.first = it->makeSpan*Instance::discretization_factor;
-        aux.second = it->TEC*Instance::discretization_factor;
+        //aux.first = it->makeSpan*Instance::discretization_factor;
+        aux.first = it->makeSpan;
+        //aux.second = it->TEC*Instance::discretization_factor;
+        aux.second = it->TEC;
         alg_data.non_dominated_set.push_back(aux);
     }
 
@@ -128,6 +130,11 @@ void RunAlgorithmNSGAII(algorithm_data alg_data, vector<Solution*> &non_dominate
     non_dominated_set.clear();
     for(auto it:non_dominated_set_ga->set_solution){
         non_dominated_set.push_back(it);
+
+#ifdef DEBUG
+    it->Check();
+#endif
+
     }
 }
 
@@ -443,16 +450,24 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
     cout << "===========Inicio Solução Inicial===========" << endl;
 #endif
     non_dominated_set_ms->ConstrutiveGreedyWeight(sz);
+    //non_dominated_set_ms->ConstrutiveRandom(sz);
     /*non_dominated_set_ms->ConstrutiveGreedyAndRandom(sz);
+    MonoSolution *temp = new MonoSolution();
+    *temp = *non_dominated_set_ms->set_solution[1];
+    *non_dominated_set_ms->set_solution[1] = *non_dominated_set_ms->set_solution[non_dominated_set_ms->set_solution.size()-1];
+    *non_dominated_set_ms->set_solution[non_dominated_set_ms->set_solution.size()-1] = *temp;
     SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
     SetWeights(non_dominated_set_ms->set_solution);*/
 
 
     /*non_dominated_set_ms->ConstructiveCombinatorialSolution();
+    SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
+    SetWeights(non_dominated_set_ms->set_solution);
     alg_data.num_weights = non_dominated_set_ms->set_solution.size();*/
 
 
     #ifdef DEBUG
+        SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
         non_dominated_set_ms->PrintSetSolution();
         cout << "===========Fim Solução Inicial===========" << endl << endl;
 
@@ -463,6 +478,9 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
 #ifdef DEBUG
     cout << endl << "===========Inicio MOVNS/D===========" << endl;
 #endif
+
+    //SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
+    //SetWeights(non_dominated_set_ms->set_solution);
 
     MOVNS_D(*non_dominated_set_ms, alg_data, t1);
     //MOVNS_D_Vivian(*non_dominated_set_ms, alg_data, t1);
