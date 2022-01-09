@@ -36,4 +36,9 @@ bool LS_Mono_BI(MonoSolution *my_solution, unsigned op_neighbor);
 void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1);
 void UpdateZ_STAR(vector<MonoSolution *> &set_solution);
 
+//--------------
+void Crossover(vector<MonoSolution*> &population, vector<MonoSolution*> &new_population, unsigned population_size);
+void GenerateOffspring3(MonoSolution *parent1, MonoSolution *parent2,
+                        MonoSolution *offspring1, MonoSolution *offspring2);
+
 #endif // DECOMPOSITION_H

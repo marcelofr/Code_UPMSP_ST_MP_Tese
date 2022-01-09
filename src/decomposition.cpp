@@ -483,33 +483,24 @@ void GenerateWeightVector(vector<pair<double, double>> &Weigths, unsigned num_we
 MonoSolution * Destruction(MonoSolution * solution, unsigned level){
 
     //unsigned job_position, max_ct, machine_max_ct, min_ct, machine_min_ct;
-    unsigned machine_makespan;
+    unsigned num_jobs;
     unsigned machine, job_position;
     vector<unsigned> removed_jobs;
 
 
-    //Remover as tarefas da máquina com o makespan
     unsigned i;
-    i=0;
-    machine_makespan = solution->GetMakespanMachine();
-    for (;i < level && solution->scheduling[machine_makespan].size()>0 ;i++ ) {
-
-        //job_position = rand()%solution->scheduling[machine_makespan].size();
-        //solution->RemovingJob(machine_makespan, job_position);
-
-        solution->RemovingJob(machine_makespan, solution->scheduling[machine_makespan].size()-1);
-
+    num_jobs = 0;
+    for (i=1;i <= Instance::num_machine;i++ ) {
+        num_jobs += solution->scheduling[i].size();
     }
 
-    //solution->CalculateShorterTimeHorizon();
-    //solution->CalculateObjective();
+    level = min(level, num_jobs);
 
-
-    for (;i < level;i++ ) {
+    for (i=0;i < level;i++ ) {
 
         do{
             machine = 1 + rand()%Instance::num_machine;
-        }while(solution->scheduling[machine].size() == 0);
+        }while(solution->scheduling[machine].size() < 1);
 
         job_position = rand()%solution->scheduling[machine].size();
 
@@ -534,22 +525,18 @@ void Construction(MonoSolution * ini_partial_solution, vector<unsigned> removed_
 
     *best_partial_solution = *ini_partial_solution;
 
-    //Para cada tarefa removida
-    //for(auto it_job : removed_jobs){
-
-
     while (removed_jobs.size() > 0) {
 
         auto best_it_job = removed_jobs.begin();
 
         //A primeira será criada na máquina 1 e posição 0
         best_partial_solution->AddJob(*best_it_job, 1, 0, 0);
-        //best_partial_solution->AddJob(*best_it_job, Instance::num_machine, ini_partial_solution->scheduling[Instance::num_machine].size(), 0);
+        best_op_mode = 1;
+        best_partial_solution->job_mode_op[*best_it_job] = best_op_mode;
+
         best_partial_solution->CalculateShorterTimeHorizon();
         best_partial_solution->CalculateObjective();
-        ///best_partial_solution->CalculeMonoObjectiveTchebycheff();
-
-        best_op_mode = ini_partial_solution->job_mode_op[*best_it_job];
+        best_partial_solution->CalculeMonoObjectiveTchebycheff();
 
         for(auto it_job = removed_jobs.begin(); it_job != removed_jobs.end(); ++it_job){
 
@@ -566,19 +553,11 @@ void Construction(MonoSolution * ini_partial_solution, vector<unsigned> removed_
                     //Para cada modo de operação
                     for(unsigned op_mode = 1; op_mode <= Instance::num_mode_op; op_mode++ ){
 
-                        /*if(ini_partial_solution->job_mode_op[it_job] == op_mode && i){
-                            continue;
-                        }*/
-
                         new_partial_solution->job_mode_op[*it_job] = op_mode;
 
                         new_partial_solution->CalculateShorterTimeHorizon();
                         new_partial_solution->CalculateObjective();
-                        ///new_partial_solution->CalculeMonoObjectiveTchebycheff();
 
-                        ///best_partial_solution->CalculeMonoObjectiveTchebycheff();
-
-                        ////if(new_partial_solution->objective_funtion - best_partial_solution->objective_funtion < -EPS){
                         if(new_partial_solution < best_partial_solution){
                             *best_partial_solution = *new_partial_solution;
 
@@ -593,20 +572,11 @@ void Construction(MonoSolution * ini_partial_solution, vector<unsigned> removed_
 
             }
 
-            //new_partial_solution vai tentar várias formas de criar uma nova solução
-            //*ini_partial_solution =  *best_partial_solution;
-
-            //ini_partial_solution->job_mode_op[*it_job] = best_op_mode;
-
         }
 
-        //ini_partial_solution->AddJob(*it2, best_machine, best_position, best_diff_time);
         *ini_partial_solution =  *best_partial_solution;
 
         ini_partial_solution->job_mode_op[*best_it_job] = best_op_mode;
-
-        //Definir o modo de operação da nova tarefa
-        //job_mode_op[*it2] = best_op_mode;
 
         removed_jobs.erase(best_it_job);
     }
@@ -621,70 +591,6 @@ void Construction(MonoSolution * ini_partial_solution, vector<unsigned> removed_
 
     delete best_partial_solution;
     delete new_partial_solution;
-
-
-    /*MonoSolution *reconstructed_solution;
-    MonoSolution *best_reconstructed_solution = new MonoSolution();
-    unsigned size;
-    reconstructed_solution = new MonoSolution();
-
-    *best_reconstructed_solution = *partial_solution;
-
-    unsigned z_star_m, z_star_t;
-
-    //Para cada tarefa removida
-    for(auto it1 : removed_jobs){
-
-        //for(auto it2 : non_dominated_set_partial.set_solution){
-        *reconstructed_solution = *best_reconstructed_solution;
-        best_reconstructed_solution->makeSpan = best_reconstructed_solution->TEC = INT_MAX;
-
-            //Para cada máquina
-            for(unsigned i=1; i<=Instance::num_machine; i++){
-                size = reconstructed_solution->scheduling[i].size();
-
-
-                //Para cada posição
-                for(unsigned p=0; p<=size; p++ ){
-
-                    reconstructed_solution->AddJob(it1, i, p, 0);
-
-                    //Para cada modo de operação
-                    for(unsigned o = 1; o <= Instance::num_mode_op; o++ ){
-
-                        reconstructed_solution->job_mode_op[it1] = o;
-                        //reconstructed_solution->CalculateShorterTimeHorizon();
-                        reconstructed_solution->CalculateShorterTimeHorizon();
-                        //reconstructed_solution->CalculateObjective();
-
-                        reconstructed_solution->CalculateObjective();
-                        //non_dominated_set_partial_next.AddSolution(reconstructed_solution);
-
-                        reconstructed_solution->CalculeMonoObjectiveTchebycheffPartial(z_star_m, z_star_t);
-                        best_reconstructed_solution->CalculeMonoObjectiveTchebycheffPartial(z_star_m, z_star_t);
-
-                        //if(reconstructed_solution->objective_funtion < best_reconstructed_solution->objective_funtion){
-                        if(reconstructed_solution->objective_funtion - best_reconstructed_solution->objective_funtion < EPS){
-                            *best_reconstructed_solution = *reconstructed_solution;
-                        }
-
-                    }
-
-                    reconstructed_solution->RemovingJob(i, p);
-                }
-            }
-        //}
-
-    }
-
-    *partial_solution = *best_reconstructed_solution;
-
-    partial_solution->CalculeMonoObjectiveTchebycheff();
-
-
-    //delete non_dominated_set_partial_b;
-    delete reconstructed_solution;
-    delete best_reconstructed_solution;*/
 
 }
 
@@ -738,23 +644,15 @@ bool IntesificationArroyo(MonoSolution *current_solution, unsigned level){
 
     bool improve = false;
     MonoSolution *partial_solution;
-    //unsigned index;
-    //NDSetSolution<LSSolution *> *non_dominated_set_i;
-    //NDSetSolution<LSSolution *> non_dominated_set_local;
 
-    //index = rand()%non_dominated_set.set_solution.size();
-    partial_solution = new MonoSolution();
+    partial_solution = new MonoSolution(*current_solution);
 
-    *partial_solution = *current_solution;
-
-    partial_solution = Destruction(partial_solution, level);
+    Destruction(partial_solution, level);
 
     vector<unsigned> removed_jobs(partial_solution->removed_jobs);
 
     partial_solution->removed_jobs.clear();
 
-    //non_dominated_set_local.set_solution.clear();
-    //non_dominated_set_local.AddSolution(partial_solution);
 
     Construction(partial_solution, removed_jobs);
     //Construction2(partial_solution, removed_jobs);
@@ -762,15 +660,6 @@ bool IntesificationArroyo(MonoSolution *current_solution, unsigned level){
     if(partial_solution->objective_funtion - current_solution->objective_funtion < - EPS){
         *current_solution = *partial_solution;
     }
-
-    /*for(auto it : non_dominated_set_local.set_solution){
-        if(non_dominated_set.AddSolution(it))
-            improve = true;
-    }
-
-    for(auto it : non_dominated_set_local.set_solution){
-        delete it;
-    }*/
 
     delete partial_solution;
 
@@ -1176,16 +1065,40 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
         cur_solution->CalculateObjective();
         cur_solution->CalculeMonoObjectiveTchebycheff();
 
+        /*best_solution->CalculeMonoObjectiveTchebycheff();
+
+        //Atualizar a melhor solução
+        if(cur_solution->objective_funtion - best_solution->objective_funtion < -EPS){
+            *best_solution = *cur_solution;
+        }*/
+
+        /*//Realizar o cruzamento
+        MonoSolution* offspring1 = new MonoSolution();
+        MonoSolution* offspring2 = new MonoSolution();
+        MonoSolution* parent1 = new MonoSolution(*non_dominated_set.set_solution[rand()%non_dominated_set.set_solution.size()]);
+        MonoSolution* parent2 = new MonoSolution(*non_dominated_set.set_solution[rand()%non_dominated_set.set_solution.size()]);
+        GenerateOffspring3(parent1, parent2, offspring1, offspring2);
+
+        offspring1->CalculeMonoObjectiveTchebycheff();
+        offspring2->CalculeMonoObjectiveTchebycheff();
+
+        if(offspring1->objective_funtion - offspring2->objective_funtion < -EPS){
+            *cur_solution = *offspring1;
+        }
+        else{
+            *cur_solution = *offspring2;
+        }
+
         best_solution->CalculeMonoObjectiveTchebycheff();
 
         //Atualizar a melhor solução
         if(cur_solution->objective_funtion - best_solution->objective_funtion < -EPS){
             *best_solution = *cur_solution;
-        }
+        }*/
 
         op_neighboor = 0;
 
-        *neighbor_solution = *cur_solution;
+        *neighbor_solution = *best_solution;
 
         while (op_neighboor < num_neighboor && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
@@ -1194,21 +1107,21 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
             switch (op_neighboor) {
                 case 0:
                     //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
-                    improve=SwapInsideLSMono(neighbor_solution, best_solution, 1);
+                    improve=SwapInsideLSMono(neighbor_solution, best_solution, 0);
                     break;
                 case 1:
-                    improve=InsertInsideLSMono(neighbor_solution, best_solution, 1);
+                    improve=InsertInsideLSMono(neighbor_solution, best_solution, 0);
                     break;
                 case 2:
                     //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
-                    improve=SwapOutsideLSMono(neighbor_solution, best_solution,1);
+                    improve=SwapOutsideLSMono(neighbor_solution, best_solution,0);
                     break;
                 case 3:
-                    improve=InsertOutsideLSMono(neighbor_solution, best_solution,1);
+                    improve=InsertOutsideLSMono(neighbor_solution, best_solution,0);
                     break;
                 case 4:
                     //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
-                    improve=ChangeOpModeLSMono(neighbor_solution, best_solution,1);
+                    improve=ChangeOpModeLSMono(neighbor_solution, best_solution,0);
                     break;
             }
 
@@ -1238,6 +1151,7 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
                     if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
                         *best_solution = *neighbor_solution;
                     }
+
                 }
             }
 
@@ -1331,8 +1245,11 @@ void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_
 
         //Perturbar a solução corrente
         op_shake = rand()%num_neighboor;
-        perturbation_level = 2 + rand()%100;
+        perturbation_level = 2 + rand()%10;
         //perturbation_level = 2;
+
+        //cur_solution guarda a solução perturbada
+        *cur_solution = *best_solution;
 
         Shaking(cur_solution, op_shake, perturbation_level);
         cur_solution->CalculateShorterTimeHorizon();
@@ -1421,8 +1338,6 @@ void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_
             auto obj_j = w_j.first*(double(non_dominated_set.set_solution[it_j]->makeSpan) / double(Z_STAR::makespan)) +
                     w_j.second*(double(non_dominated_set.set_solution[it_j]->TEC) / double(Z_STAR::TEC));
 
-            non_dominated_set.set_solution[it_j]->CalculeMonoObjectiveTchebycheff();
-
             //if(obj_i < obj_j){
             if(obj_i - obj_j < -EPS){
                 *non_dominated_set.set_solution[it_j] = *best_solution;
@@ -1440,5 +1355,169 @@ void MOVNS_D_Vivian(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_
 
     delete neighbor_solution;
     delete cur_solution;
+
+}
+
+/*
+ * Cruzamento para gerar TAM_CROSSOVER indivíduos
+ * Uso de torneio binário para selecionar os indivíduos para o cruzamento
+ */
+void Crossover(vector<MonoSolution*> &population, vector<MonoSolution*> &new_population, unsigned population_size)
+{
+    MonoSolution *parent1, *parent2, *offspring1, *offspring2;
+    unsigned ind1, ind2;
+    unsigned size = population.size();
+
+    new_population.clear();
+
+    //Gerar novos indivíduos com o cruzamento
+    for (unsigned i = 0; i < population_size/2; ++i) {
+
+        //Seleção de indivíduos por torneio binário
+
+        //Escolher dois indivíduos aleatoriamente
+        ind1 = rand()%size;
+        ind2 = rand()%size;
+        //Escolher o melhor indivíduo para ser o pai 1
+        if(population[ind1] < population[ind2]){
+            parent1 = population[ind1];
+        }
+        else{
+            parent1 = population[ind2];
+        }
+
+        //Escolher dois indivíduos aleatoriamente
+        ind1 = rand()%size;
+        ind2 = rand()%size;
+        //Escolher o melhor indivíduo para ser o pai 2
+        if(population[ind1] < population[ind2]){
+            parent2 = population[ind1];
+        }
+        else{
+            parent2 = population[ind2];
+        }
+
+        //Realizar o cruzamento
+        offspring1 = new MonoSolution();
+        offspring2 = new MonoSolution();
+        GenerateOffspring3(parent1, parent2, offspring1, offspring2);
+
+        //Adicionar os filhos gerados à nova população
+        new_population.push_back(offspring1);
+        new_population.push_back(offspring2);
+
+    }
+
+}
+
+/*
+ * Gerar filhos usando o método do Ruiz
+ */
+void GenerateOffspring3(MonoSolution *parent1, MonoSolution *parent2,
+                        MonoSolution *offspring1, MonoSolution *offspring2)
+{
+
+    //Vetores para os filhos
+    vector<bool> o1(Instance::num_jobs+1, false), o2(Instance::num_jobs+1, false);
+
+    unsigned size;
+
+    unsigned op = rand()%2;
+
+    //Para cada máquina, a primeira parte das tarefas do pai 1 é herdada pelo filho 1
+    //A segunda parte é herdada pelo filho 2
+    for (unsigned i = 1; i <= Instance::num_machine; ++i) {
+
+        if(parent1->scheduling[i].size() > 0){
+            //O filho 1 herda a primeira parte das tarefas do pai 1, na máquina i
+            size = rand()%parent1->scheduling[i].size();
+            for(auto it = parent1->scheduling[i].begin(); it != parent1->scheduling[i].begin()+size; ++it){
+                offspring1->scheduling[i].push_back(*it);
+                o1[*it] = true;
+
+                //O filho 1 herda o modo de operação do pai 1
+                offspring1->job_mode_op[*it] = parent1->job_mode_op[*it];
+            }
+
+            //O filho 2 herda a segunda parte das tarefas do pai 1, na máquina i
+            size = parent1->scheduling[i].size() - size;
+            for(auto it = parent1->scheduling[i].begin(); it != parent1->scheduling[i].begin()+size; ++it){
+                offspring2->scheduling[i].push_back(*it);
+                o2[*it] = true;
+
+                //O filho 2 herda o modo de operação do pai 1
+                offspring2->job_mode_op[*it] = parent1->job_mode_op[*it];
+            }
+        }
+
+    }
+
+    //As tarefas restantes dos filhos 1 e 2 são herdadas de acordo com característica do pai 2
+    for (unsigned i = 1; i <= Instance::num_machine; ++i) {
+        for(auto it = parent2->scheduling[i].begin(); it != parent2->scheduling[i].end(); ++it){
+
+            //Se a tarefa it ainda não está no filho 1, então ela deve ser adicionada
+            if(!o1[*it]){
+
+                //Herdar o modo de operação do pai 2
+                //offspring1.job_mode_op[*it] = parent2.job_mode_op[*it];
+
+                //Inserir a nova tarefa, na melhor posição considerando um dos objetivos
+                if(op == 0){
+                //if(true){
+                    //offspring1.scheduling[i].push_back(*it);
+                    offspring1->AddJobGreedyMakespanMachine(i, *it, parent2->job_mode_op[*it]);
+                }
+                else{
+                    //offspring1.AddJobGreedyTECMachine(i, *it, parent2.job_mode_op[*it]);
+                    offspring1->AddJobGreedyTECMachine3(i, *it, parent2->job_mode_op[*it]);
+                }
+
+            }
+
+            //Se a tarefa it não está no filho 2, então ela deve ser adicionada
+            if(!o2[*it]){
+
+                //Herdar o modo de operação do pai 2
+                //offspring2.job_mode_op[*it] = parent2.job_mode_op[*it];
+
+                //Inserir a nova tarefa, na melhor posição considerando um dos objetivos
+                if(op == 0){
+                //if(true){
+                    //offspring2.scheduling[i].push_back(*it);
+                    offspring2->AddJobGreedyMakespanMachine(i, *it, parent2->job_mode_op[*it]);
+                }
+                else{
+                    //offspring2.AddJobGreedyTECMachine(i, *it, parent2.job_mode_op[*it]);
+                    offspring2->AddJobGreedyTECMachine3(i, *it, parent2->job_mode_op[*it]);
+                }
+
+            }
+        }
+    }
+
+    if(op == 0){
+        //Definir o instance inicial de cada tarefa presente na sequência
+        //considerando o menor valor para o tempo de término em cada máquina
+        offspring1->CalculateShorterTimeHorizon();
+        offspring2->CalculateShorterTimeHorizon();
+    }
+    else{
+        //Definir o instance inicial de cada tarefa presente na sequência
+        //considerando o menor valor para o custo de energia
+        offspring1->CalculateHorizonAvoidingPeak();
+        offspring2->CalculateHorizonAvoidingPeak();
+    }
+
+    offspring1->weights = parent1->weights;
+    offspring2->weights = parent2->weights;
+
+
+    //Calcular a função objetivo
+    offspring1->CalculateObjective();
+    offspring2->CalculateObjective();
+
+    o1.clear();
+    o2.clear();
 
 }

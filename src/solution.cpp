@@ -1789,11 +1789,11 @@ void Solution::SwapInside(unsigned machine, unsigned pos_job1, unsigned pos_job2
 {
     unsigned temp, job1, job2;
 
-    job1 = this->scheduling[machine][pos_job1];
+    /*job1 = this->scheduling[machine][pos_job1];
     job2 = this->scheduling[machine][pos_job2];
     temp = this->job_mode_op[job1];
     this->job_mode_op[job1] = this->job_mode_op[job2];
-    this->job_mode_op[job2] = temp;
+    this->job_mode_op[job2] = temp;*/
 
     temp = this->scheduling[machine][pos_job1];
     this->scheduling[machine][pos_job1] = this->scheduling[machine][pos_job2];
@@ -1823,11 +1823,11 @@ void Solution::SwapOutside(unsigned machine1, unsigned pos_job1, unsigned machin
 {
     unsigned temp, job1, job2;
 
-    job1 = this->scheduling[machine1][pos_job1];
+    /*job1 = this->scheduling[machine1][pos_job1];
     job2 = this->scheduling[machine2][pos_job2];
     temp = this->job_mode_op[job1];
     this->job_mode_op[job1] = this->job_mode_op[job2];
-    this->job_mode_op[job2] = temp;
+    this->job_mode_op[job2] = temp;*/
 
     temp = this->scheduling[machine1][pos_job1];
     this->scheduling[machine1][pos_job1] = this->scheduling[machine2][pos_job2];
@@ -1862,11 +1862,11 @@ void Solution::InsertInside(unsigned machine, unsigned pos1, unsigned pos2)
 
     unsigned temp, job1, job2;
 
-    job1 = this->scheduling[machine][pos1];
+    /*job1 = this->scheduling[machine][pos1];
     job2 = this->scheduling[machine][pos2];
     temp = this->job_mode_op[job1];
     this->job_mode_op[job1] = this->job_mode_op[job2];
-    this->job_mode_op[job2] = temp;
+    this->job_mode_op[job2] = temp;*/
 
     temp = this->scheduling[machine][pos1];
 
@@ -1912,11 +1912,11 @@ void Solution::InsertOutside(unsigned machine1, unsigned pos1, unsigned machine2
 
     unsigned temp, job1, job2;
 
-    job1 = this->scheduling[machine1][pos1];
+    /*job1 = this->scheduling[machine1][pos1];
     job2 = this->scheduling[machine2][pos2];
     temp = this->job_mode_op[job1];
     this->job_mode_op[job1] = this->job_mode_op[job2];
-    this->job_mode_op[job2] = temp;
+    this->job_mode_op[job2] = temp;*/
 
     //Criar um iterator para a primeira tarefa
     auto it_job1 = this->scheduling[machine1].begin() + pos1;

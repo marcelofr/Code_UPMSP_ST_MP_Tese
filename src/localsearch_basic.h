@@ -40,7 +40,7 @@ public:
         this->H1[*it] = 0;
         this->job_start_time1[*it] = 0;
         this->job_end_time1[*it] = 0;
-        //this->job_mode_op[*it] = 0;
+        this->job_mode_op[*it] = 0;
 
         this->scheduling[machine].erase(it);
 
