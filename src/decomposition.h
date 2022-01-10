@@ -6,16 +6,20 @@
 #include <algorithm>
 #include "common_basic.h"
 
-bool SwapInsideLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type=0);
+bool SwapInsideLSMonoFI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
+bool SwapInsideLSMonoBI(MonoSolution *neighbor_solution);
 
+bool SwapOutsideLSMonoFI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
+bool SwapOutsideLSMonoBI(MonoSolution *neighbor_solution);
 
-bool SwapOutsideLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type=0);
+bool InsertInsideLSMonoFI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
+bool InsertInsideLSMonoBI(MonoSolution *neighbor_solution);
 
-bool InsertInsideLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type=0);
+bool InsertOutsideLSMonoFI(MonoSolution *neighbor_solution, const MonoSolution* best_solution);
+bool InsertOutsideLSMonoBI(MonoSolution *neighbor_solution);
 
-bool InsertOutsideLSMono(MonoSolution *neighbor_solution, const MonoSolution* best_solution, unsigned type=0);
-
-bool ChangeOpModeLSMono(MonoSolution *neighbor_solution, const MonoSolution *best_solution, unsigned type=0);
+bool ChangeOpModeLSMonoFI(MonoSolution *neighbor_solution, const MonoSolution *best_solution);
+bool ChangeOpModeLSMonoBI(MonoSolution *neighbor_solution);
 
 bool CompareMakespanMonoSolution(MonoSolution *& l, MonoSolution *& r);
 void SortByMakespanMonoSolution(vector<MonoSolution*> &set_solution);
