@@ -450,6 +450,9 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
     non_dominated_set_ms->PrintSetSolution();
     cout << "===========Fim Solução Inicial===========" << endl << endl;
 
+    t1->stop();
+    cout << "Tempo decorrido: " << t1->getElapsedTimeInMilliSec() << endl;
+
     cout << "Tempo limite: " << alg_data.time_limit << endl;
 
     cout << endl << "===========Inicio MOVNS/D===========" << endl;
@@ -458,11 +461,12 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
     MOVNS_D(*non_dominated_set_ms, alg_data, t1);
     //MOVNS_D_Vivian(*non_dominated_set_ms, alg_data, t1);
 
-    SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
+    //SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
 
     //Criar um novo conjunto para ajudar a remover soluções repetidas
     NDSetSolution<MonoSolution *> *non_dominated_set_local = new NDSetSolution<MonoSolution *>();
 
+    non_dominated_set_local->set_solution.clear();
     for(auto it:non_dominated_set_ms->set_solution){
         non_dominated_set_local->AddSolution(it);
     }

@@ -355,7 +355,7 @@ void MOVNS(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data alg_da
 
         shaked_solution = new LSSolution ();
         *shaked_solution = *current_solution;
-        shaked_solution = Shaking(shaked_solution, op_neighbor, 1);
+        Shaking(shaked_solution, op_neighbor, 1);
         /*shaked_solution->CalculateShorterTimeHorizon();
         shaked_solution->CalculateObjective();*/
 
@@ -397,7 +397,7 @@ void MOVNS_Arroyo(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data
 
         current_solution->was_visited = true;
 
-        shaked_solution = Shaking(shaked_solution, op_neighbor, 1);
+        Shaking(shaked_solution, op_neighbor, 1);
 
         //Local search
         for(auto it : nd_set_solution_shaked.set_solution){
@@ -446,7 +446,7 @@ void MOVNS_Eduardo(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_dat
         for(auto it : non_dominated_set.set_solution){
             *shaked_solution = *it;
 
-            shaked_solution = Shaking(shaked_solution, op_neighbor, shake_level);
+            Shaking(shaked_solution, op_neighbor, shake_level);
 
             nd_set_solution_shaked.AddSolution(shaked_solution);
         }

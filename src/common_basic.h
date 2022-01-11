@@ -16,7 +16,7 @@
 //#define IRACE
 
 
-#define EPS 1e-6
+#define EPS 1e-8
 
 using namespace std;
 

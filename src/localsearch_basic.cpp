@@ -387,7 +387,7 @@ LSSolution *GenNeighborSol(LSSolution *my_solution, unsigned op_neighbor)
 }
 
 
-LSSolution * Shaking(LSSolution *cur_solution, unsigned op_neighbor, unsigned level)
+void Shaking(LSSolution *cur_solution, unsigned op_neighbor, unsigned level)
 {
 
     for(unsigned i=0; i<level; i++){
@@ -395,7 +395,6 @@ LSSolution * Shaking(LSSolution *cur_solution, unsigned op_neighbor, unsigned le
         cur_solution = GenNeighborSol(cur_solution, op_neighbor);
     }
 
-    return cur_solution;
 }
 
 LSSolution * Destruction(LSSolution * solution, unsigned level){

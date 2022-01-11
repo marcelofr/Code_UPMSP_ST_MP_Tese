@@ -27,6 +27,7 @@ public:
         Solution::operator=(s);
 
         this->was_visited = s.was_visited;
+        this->removed_jobs = s.removed_jobs;
         return *this;
     }
     //bool operator <(const Solution& s) ;
@@ -71,7 +72,7 @@ LSSolution* GenRandomNeighborSol(LSSolution *my_solution);
 LSSolution *GenNeighborSol(LSSolution *my_solution, unsigned op_neighbor);
 
 //void Shaking(NDSetSolution<LSSolution *> *non_dominated_set_in, NDSetSolution<LSSolution *> *non_dominated_set_out, unsigned op_neighbor, unsigned level);
-LSSolution * Shaking(LSSolution *solution, unsigned op_neighbor, unsigned level);
+void Shaking(LSSolution *solution, unsigned op_neighbor, unsigned level);
 //void Shaking_Eduardo(NDSetSolution<LSSolution *> *non_dominated_set_in, NDSetSolution<LSSolution *> *non_dominated_set_out, unsigned op_neighbor, unsigned level);
 
 LSSolution * Destruction(LSSolution * solution, unsigned level);
