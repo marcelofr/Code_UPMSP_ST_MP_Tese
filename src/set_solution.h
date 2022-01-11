@@ -398,59 +398,106 @@ public:
 
     void ConstrutiveGreedyWeight(unsigned set_size){
 
-        T my_solution;
-        my_solution = nullptr;
+        T my_solution_m;
+        my_solution_m = nullptr;
+
+        T my_solution_t;
+        my_solution_t = nullptr;
+
+        T my_solution_w;
+        my_solution_w = nullptr;
+        double obj1, obj2;
 
         unsigned x,y;
         x = set_size;
         y = 0;
 
+        this->set_solution.resize(set_size);
+
 
         /*Gerar uma solução gulosa considerando o objetivo do makespan*/
-        my_solution = my_solution->Create();
-        my_solution->weights.first = 1-EPS;
-        my_solution->weights.second = EPS;
+        my_solution_m = my_solution_m->Create();
+        my_solution_m->weights.first = 1-EPS;
+        my_solution_m->weights.second = EPS;
 
-        my_solution->GenerateGreedySolutionMakespan();
+        my_solution_m->GenerateGreedySolutionMakespan();
         //this->AddSolution(my_solution);
-        this->set_solution.push_back(my_solution);
+        ///this->set_solution.push_back(my_solution);
+        this->set_solution[0] = my_solution_m;
+
+        /*Gerar uma solução gulosa considerando o objetivo do makespan*/
+        my_solution_t = my_solution_t->Create();
+
+        my_solution_t->weights.first = EPS;
+        my_solution_t->weights.second = 1-EPS;
+
+        my_solution_t->GenerateGreedySolutionTEC3();
+
+        ///this->set_solution.push_back(my_solution);
+        this->set_solution[set_size-1] = my_solution_t;
 
         x--;
         y++;
 
-
         /*Gerar o restante dos indivíduos aleatoriamente*/
         for (unsigned i = 0; i < set_size-2; ++i) {
+
             /*Gerar uma solução gulosa considerando o objetivo do makespan*/
-            my_solution = my_solution->Create();
+            my_solution_w = my_solution_w->Create();
 
-            my_solution->weights.first = double(y)/double(set_size);
-            my_solution->weights.second = double(x)/double(set_size);
+            my_solution_w->weights.first = double(y)/double(set_size);
+            my_solution_w->weights.second = double(x)/double(set_size);
 
-            my_solution->GenerateGreedySolutionWeigth();
-            //my_solution->RandomInitialSolution();
-            //my_solution->GenerateGreedySolutionWeigth_Caro();
-            /*if(i%2 == 0)
-                my_solution->RandomInitialSolution();
-            else
-                my_solution->GenerateGreedySolutionWeigth();*/
+            my_solution_w->GenerateGreedySolutionWeigth();
 
-            this->set_solution.push_back(my_solution);
+            //Makespan ponderado com a outra solução
+            obj1 = my_solution_w->weights.first*my_solution_m->makeSpan +
+                    my_solution_w->weights.second*my_solution_m->TEC;
+
+            //TEC ponderado com a outra solução
+            obj2 = my_solution_w->weights.first*my_solution_t->makeSpan +
+                    my_solution_w->weights.second*my_solution_t->TEC;
+
+
+            if(obj1 < obj2){
+
+                //Solução ponderada é obj2
+                obj2 = my_solution_w->weights.first*my_solution_w->makeSpan +
+                        my_solution_w->weights.second*my_solution_w->TEC;
+
+                if(obj1 < obj2){
+                    //Backup do peso
+                    my_solution_t->weights = my_solution_w->weights;
+
+                    my_solution_w = my_solution_m;
+
+                    my_solution_w->weights = my_solution_t->weights;
+                }
+
+            }
+            else{
+
+                //Solução ponderada é obj1
+                obj1 = my_solution_w->weights.first*my_solution_w->makeSpan +
+                        my_solution_w->weights.second*my_solution_w->TEC;
+
+                if(obj2 < obj1){
+                    //Backup do peso
+                    my_solution_m->weights = my_solution_w->weights;
+
+                    my_solution_w = my_solution_t;
+
+                    my_solution_w->weights = my_solution_m->weights;
+                }
+            }
+
+            ///this->set_solution.push_back(my_solution);
+            this->set_solution[i+1] = my_solution_w;
 
             x--;
             y++;
 
         }
-
-        /*Gerar uma solução gulosa considerando o objetivo do makespan*/
-        my_solution = my_solution->Create();
-
-        my_solution->weights.first = EPS;
-        my_solution->weights.second = 1-EPS;
-
-        my_solution->GenerateGreedySolutionTEC3();
-
-        this->set_solution.push_back(my_solution);
 
     }
 

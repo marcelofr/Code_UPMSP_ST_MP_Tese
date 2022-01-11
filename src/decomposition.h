@@ -33,6 +33,7 @@ void Construction(MonoSolution * partial_solution, vector<unsigned> removed_jobs
 bool IntesificationArroyo(MonoSolution *current_solution, unsigned level);
 
 MonoSolution * Shaking(MonoSolution *cur_solution, unsigned op_neighbor, unsigned level);
+MonoSolution * Shaking(MonoSolution *cur_solution, unsigned level);
 MonoSolution *GenNeighborSol(MonoSolution *my_solution, unsigned op_neighbor);
 
 void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1);
