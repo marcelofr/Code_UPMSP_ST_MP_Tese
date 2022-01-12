@@ -86,19 +86,20 @@ void Instance::ReadMarceloInstance(string instance_file_name)
     arqEntrada >> d_num;
     Instance::rate_off_peak = d_num;
 
-    //Leitura do custo máximo
+    //Leitura do custo máximo de energia
     arqEntrada >> next;
     arqEntrada >> u_num;
     Instance::max_energy_cost = u_num;
 
-    /*//Leitura do custo máximo
     arqEntrada >> next;
-    arqEntrada >> u_num;
-    Instance::max_makespan = u_num;*/
+
+    //Leitura do makespan máximo
+    if(next == "max_makespan"){
+        arqEntrada >> u_num;
+        Instance::max_makespan = u_num;
+    }
 
     Instance::Init();
-
-    arqEntrada >> next;
 
     //Leitura do início do horário de pico
     for (unsigned i = 0; i < Instance::num_days; i++) {

@@ -8,6 +8,7 @@ SOURCES += \
         common_basic.cpp \
         decomposition.cpp \
         gasolution.cpp \
+        generate_intances.cpp \
         genetic_basic.cpp \
         instance.cpp \
         localsearch.cpp \
@@ -28,6 +29,7 @@ HEADERS += \
     common_basic.h \
     decomposition.h \
     gasolution.h \
+    generate_intances.h \
     genetic_basic.h \
     instance.h \
     localsearch.h \

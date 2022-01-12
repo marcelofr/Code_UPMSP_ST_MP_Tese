@@ -1,5 +1,6 @@
 #include <iostream>
 #include <run_algorithm.h>
+#include "generate_intances.h"
 
 using namespace std;
 
@@ -43,9 +44,13 @@ int main(int argc, char** argv)
     }
     else{
 
-        //alg_data.param.instance_folder = "../../Instances/SMALL/"; alg_data.param.instance_name = "6_2_1439_3_S_1-9";
+        Instance::discretization_factor = 10;
+
+        alg_data.param.instance_folder = "../../Instances/SMALL/"; alg_data.param.instance_name = "6_2_1439_3_S_1-9";
+        //alg_data.param.instance_folder = "../../Instances/SMALL_2022_01_12/"; alg_data.param.instance_name = "6_2_1439_3_S_1-9";
+        //alg_data.param.instance_folder = "../../Instances/SMALL/"; alg_data.param.instance_name = "9_2_1439_3_S_1-9";
         //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "50_20_1439_5_S_1-9";
-        alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "250_10_1439_5_S_1-124";
+        //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "250_10_1439_5_S_1-124";
         //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "750_10_1439_5_S_1-124";
         //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "750_10_1439_5_S_1-9";
 
@@ -54,19 +59,23 @@ int main(int argc, char** argv)
 
         //alg_data.param.s_seed = "50396";
         //alg_data.param.s_seed = "6241";
-        alg_data.param.s_seed = "60048";
+        alg_data.param.s_seed = "45433";
+
+        alg_data.param.algorithm_name = "MOVNS_D";
         //alg_data.param.algorithm_name = "NSGAII"; //nsga-ii
         //alg_data.param.algorithm_name = "EXACT";
         //alg_data.param.algorithm_name = "SPEA2";
         //alg_data.param.algorithm_name = "MOGA";
         //alg_data.param.algorithm_name = "NSGAI";
-        alg_data.param.algorithm_name = "MOVNS_D";
-        //alg_data.param.algorithm_name = "CalculateMetric";
 
-        alg_data.param.s_max_time_factor = "1000";
-        //alg_data.param.folder_solution = "../../Solutions/2021_10_29_23_04/";
-        //alg_data.param.folder_solution = "../../Solutions/Solutions_30/";
-        alg_data.param.folder_solution = "../../Solutions/Test/";
+        //alg_data.param.algorithm_name = "CalculateMetric";
+        //alg_data.param.algorithm_name = "GENERATE_SMALL_INSTANCES";
+        //alg_data.param.algorithm_name = "GENERATE_LARGE_INSTANCES";
+
+        alg_data.param.s_max_time_factor = "2000";
+        alg_data.param.folder_solution = "../../Solutions/SMALL_11_01_2022_21_08/";
+        //alg_data.param.folder_solution = "../../Solutions/LARGE_8/";
+        //alg_data.param.folder_solution = "../../Solutions/Test/";
         alg_data.param.file_solution = alg_data.param.folder_solution + alg_data.param.algorithm_name + "_"
                + alg_data.param.instance_name + "_" + alg_data.param.s_seed +  ".sol";
         alg_data.param.s_alpha = "0.0001";
@@ -98,9 +107,17 @@ int main(int argc, char** argv)
     if(alg_data.param.algorithm_name == "CalculateMetric"){
         CalculateMetric(alg_data.param.folder_solution);
     }
+    else if(alg_data.param.algorithm_name == "GENERATE_SMALL_INSTANCES"){
+        GenerateSmallInstances();
+
+    }
+    else if(alg_data.param.algorithm_name == "GENERATE_LARGE_INSTANCES"){
+        GenerateLargeInstances();
+    }
     else{
         RunAlgorithm(alg_data);
     }
+
 
     return 0;
 }
