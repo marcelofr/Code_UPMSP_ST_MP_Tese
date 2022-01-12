@@ -169,8 +169,8 @@ void Solution::Print()
         }
         cout << " (" << machine_completion_time[i] << " - " << machine_TEC[i] << ") " << endl;
     }
-    cout << "Makespan: " << makeSpan << endl;
-    cout << "TEC: " << TEC << endl;
+    cout << "Makespan: " << makeSpan*Instance::discretization_factor << endl;
+    cout << "TEC: " << TEC*Instance::discretization_factor << endl;
     cout << endl;
 }
 
@@ -623,8 +623,8 @@ void Solution::CalculateObjective()
         this->TEC += this->machine_TEC[i];
     }
 
-    this->makeSpan *= Instance::discretization_factor;
-    this->TEC *= Instance::discretization_factor;
+    /*this->makeSpan *= Instance::discretization_factor;
+    this->TEC *= Instance::discretization_factor;*/
 }
 
 void Solution::CalculateObjectiveDiscrete()
@@ -694,6 +694,9 @@ void Solution::CalculateObjectiveMachine(unsigned machine)
     }
 
     this->TEC += this->machine_TEC[machine];
+
+    /*this->makeSpan *= Instance::discretization_factor;
+    this->TEC *= Instance::discretization_factor;*/
 }
 
 /*
@@ -848,12 +851,14 @@ void Solution::Check()
 
     }
 
-    if(makespan_calc*Instance::discretization_factor != makeSpan){
+    //if(makespan_calc*Instance::discretization_factor != makeSpan){
+    if(makespan_calc != makeSpan){
         cout << "=========Erro==============" << endl;
         cout << "Makespan, valor esperado: " << makespan_calc << " armazenado: " << makeSpan << endl;
     }
 
-    if((tec_calc*Instance::discretization_factor - TEC > 0.0001)){
+    //if((tec_calc*Instance::discretization_factor - TEC > 0.0001)){
+    if((tec_calc - TEC > 0.0001)){
         cout << "=========Erro==============" << endl;
         cout << "Custo de energia, valor esperado: " << tec_calc << " armazenado: " << TEC << endl;
     }

@@ -68,10 +68,10 @@ void RunAlgorithm(algorithm_data alg_data){
         #ifdef DEBUG
             it->Check();
         #endif
-        //aux.first = it->makeSpan*Instance::discretization_factor;
-        aux.first = it->makeSpan;
-        //aux.second = it->TEC*Instance::discretization_factor;
-        aux.second = it->TEC;
+        aux.first = it->makeSpan*Instance::discretization_factor;
+        //aux.first = it->makeSpan;
+        aux.second = it->TEC*Instance::discretization_factor;
+        //aux.second = it->TEC;
         alg_data.non_dominated_set.push_back(aux);
     }
 
@@ -461,7 +461,7 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
     MOVNS_D(*non_dominated_set_ms, alg_data, t1);
     //MOVNS_D_Vivian(*non_dominated_set_ms, alg_data, t1);
 
-    //SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
+    SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
 
     //Criar um novo conjunto para ajudar a remover soluções repetidas
     NDSetSolution<MonoSolution *> *non_dominated_set_local = new NDSetSolution<MonoSolution *>();

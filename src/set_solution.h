@@ -440,9 +440,12 @@ public:
             my_solution->weights.first = double(y)/double(set_size-1);
             my_solution->weights.second = double(x-1)/double(set_size-1);
 
-            //my_solution->GenerateGreedySolutionWeigth();
-            my_solution->GenerateGreedySolutionWeigth_Caro();
-
+            if(i%3 == 0){
+                my_solution->GenerateGreedySolutionWeigth_Caro();
+            }
+            else{
+                my_solution->GenerateGreedySolutionWeigth();
+            }
 
             this->set_solution[i] = my_solution;
 

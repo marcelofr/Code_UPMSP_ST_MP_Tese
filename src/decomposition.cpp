@@ -1563,27 +1563,24 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
                     break;
             }
 
+            //Se a busca é first improvement
             if(OP_BUSCA==0){
+                //Verificar se houve melhora
                 if(improve){
                     CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
                     *best_solution = *neighbor_solution;
-                    //*non_dominated_set.set_solution[s_index] = *neighbor_solution;
-                    //op_neighboor = 0;
                 }
-            }
+            }//Se a busca é best improvement
             else{
-                if(improve){
-                    best_solution->CalculeMonoObjectiveTchebycheff();
-                    if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-                        CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
-                        *best_solution = *neighbor_solution;
-                    }
+                //Verificar se houve melhora
+                best_solution->CalculeMonoObjectiveTchebycheff();
+                if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
+                    CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
+                    *best_solution = *neighbor_solution;
                 }
             }
 
-            //Verificar se houve melhora
-
-            //Se não houve melhora, seguir para próxima vizinhança
+            //Seguir para próxima vizinhança
             op_neighboor++;
 
             //Se não tem próxima vizinhança, fazer a intensificação
@@ -1600,7 +1597,9 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
                     CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
                     *best_solution = *neighbor_solution;
                 }
-                else if(neighbor_solution->makeSpan > Instance::v_peak_start[0]){
+
+                //Se alguma tarefa está sendo alocada dentro do horário de pico
+                if(neighbor_solution->makeSpan > Instance::v_peak_start[0]){
                     neighbor_solution->CalculateHorizonAvoidingPeak();
                     neighbor_solution->CalculateObjective();
                     neighbor_solution->CalculeMonoObjectiveTchebycheff();
@@ -1621,46 +1620,6 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
         }
 
         UpdateZ_STAR(non_dominated_set.set_solution);
-
-
-
-        //*non_dominated_set.set_solution[s_index] = *cur_solution;
-
-//        alg_data.param.u_decomposition_neighboor_size = 3;
-//        auto mid = alg_data.param.u_decomposition_neighboor_size/2;
-//        //for(unsigned it_j = mid; it_j < non_dominated_set.set_solution.size()-mid; it_j++){
-
-//            for(unsigned i=0 ; i<alg_data.param.u_decomposition_neighboor_size; i++){
-//                if(i==mid || i < mid || s_index >= non_dominated_set.set_solution.size()-mid){
-//                    continue;
-//                }
-
-//                auto w_neighboor = non_dominated_set.set_solution[s_index-mid+i]->weights;
-
-//                auto obj_neighboor = w_neighboor.first*(double(non_dominated_set.set_solution[s_index-mid+i]->makeSpan) / double(Z_STAR::makespan)) +
-//                        w_neighboor.second*(double(non_dominated_set.set_solution[s_index-mid+i]->TEC) / double(Z_STAR::TEC));
-//                auto obj_cur = w_neighboor.first*(double(non_dominated_set.set_solution[s_index]->makeSpan) / double(Z_STAR::makespan)) +
-//                        w_neighboor.second*(double(non_dominated_set.set_solution[s_index]->TEC) / double(Z_STAR::TEC));
-
-//                /*auto obj_i = w_j.first*(abs(Z_STAR::makespan - best_solution->makeSpan)) +
-//                                        w_j.second*(abs(Z_STAR::TEC - non_dominated_set.set_solution[s_index-mid+i]->TEC));
-//                                auto obj_j = w_j.first*(abs(Z_STAR::makespan - best_solution->makeSpan)) +
-//                                        w_j.second*(abs(Z_STAR::TEC - non_dominated_set.set_solution[s_index-mid+i]->TEC));*/
-
-//                /*this->objective_funtion = max(this->weights.first*(this->makeSpan-Z_STAR::makespan),
-//                                              this->weights.second*(this->TEC-Z_STAR::TEC)
-//                                              );*/
-
-//                //if(obj_i < obj_j){
-//                if(obj_cur - obj_neighboor  < -EPS){
-//                    *non_dominated_set.set_solution[s_index-mid+i] = *non_dominated_set.set_solution[s_index];
-//                    non_dominated_set.set_solution[s_index-mid+i]->weights = w_neighboor;
-//                }
-
-//            }
-
-
-        //}
 
         index++;
         t1->stop();
