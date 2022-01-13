@@ -395,6 +395,35 @@ void Shaking(LSSolution *cur_solution, unsigned op_neighbor, unsigned level)
         cur_solution = GenNeighborSol(cur_solution, op_neighbor);
     }
 
+    cur_solution->CalculateShorterTimeHorizon();
+    cur_solution->CalculateObjective();
+
+}
+
+void Shaking(LSSolution *cur_solution, unsigned level)
+{
+
+    unsigned op_neighbor;
+
+    LSSolution *new_solution = new LSSolution(*cur_solution);
+
+    for(unsigned i=0; i<level; i++){
+        op_neighbor = rand()%QTD_NEIGHBOR;
+        //Gerar uma solução vizinha aleatoriamente
+        GenNeighborSol(new_solution, op_neighbor);
+    }
+
+    *cur_solution = *new_solution;
+
+    cur_solution->CalculateShorterTimeHorizon();
+    cur_solution->CalculateObjective();
+
+#ifdef DEBUG
+    cur_solution->Check();
+#endif
+
+    delete new_solution;
+
 }
 
 LSSolution * Destruction(LSSolution * solution, unsigned level){
@@ -548,67 +577,66 @@ void SortByMakespanLSSolution(vector<LSSolution*> &set_solution)
  * no conjunto não-dominado (first improvement), ou até percorrer toda a vizinhança
  * Ele retorna verdadeiro, caso consiga adicionar um vizinho ao conjunto não-dominado
  */
-bool SwapInsideLS_FI(LSSolution *my_solution, NDSetSolution<LSSolution*> &non_dominated_set)
+bool SwapInsideLS_FI(LSSolution *ini_solution, NDSetSolution<LSSolution*> &non_dominated_set)
 {
+
+    LSSolution *neighbor_solution = new LSSolution(*ini_solution);
+
     unsigned long num_job_maq;
-
-    LSSolution *neighbor_sol = new LSSolution();
-
-    //Criar uma cópia da solução
-    *neighbor_sol = *my_solution;
+    //double best_objective_funtion;
 
     //Para cada máquina i de 1 à n
+    //O TEC não muda em troca dentro da mesma máquina
+    //O makespan só muda no máquina onde está o makespan
+    unsigned i = ini_solution->GetMakespanMachine();
     //for (unsigned i = 1; i <= Instance::num_machine; i++) {
-    unsigned i = neighbor_sol->GetMakespanMachine();
-        num_job_maq = neighbor_sol->scheduling[i].size();
+
+        num_job_maq = ini_solution->scheduling[i].size();
+
+        if(num_job_maq < 2){
+
+            delete neighbor_solution;
+
+            //continue;
+            return false;
+        }
 
         //Para cada tarefa j da máquina i
-        for (unsigned j = 0; j < num_job_maq-1; j++) {
+        for (unsigned j = 0; j < num_job_maq-1 ; j++) {
 
             //Para cada tarefa k da máquina i
-            for (unsigned k = j+1; k < num_job_maq; ++k) {
-
-                //Criar uma cópia da solução
-                //*neighbor_sol = *my_solution;
+            for (unsigned k = j+1; k < num_job_maq ; ++k) {
 
                 //Gerar vizinho com a troca de tarefas em uma máquina
-                //neighbor_sol->SwapInsideDelta(i, j, k);
-                neighbor_sol->SwapInside(i, j, k);
+                neighbor_solution->SwapInside(i, j, k);
+                neighbor_solution->CalculateShorterTimeHorizonMachine(i);
+                neighbor_solution->CalculateObjectiveMachine(i);
 
+                //Verificar se houve melhora global
+                if(non_dominated_set.AddSolution(neighbor_solution)){
 
-                //Calcula os objetivos considerando apenas a máquina modificada
-                neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-                neighbor_sol->CalculateObjectiveMachine(i);
+                    delete neighbor_solution;
 
-                //Tentar adicionar o vizinho gerado no conjunto não-dominado
-                //Se conseguiu, então retorna true, senão continua a busca
-                //if(AddSolution(neighbor_sol, non_dominated_set)){
-                if(non_dominated_set.AddSolution(neighbor_sol)){
                     return true;
                 }
+                else if(neighbor_solution->makeSpan > Instance::v_peak_start[0]){
+                    neighbor_solution->CalculateHorizonAvoidingPeak();
+                    neighbor_solution->CalculateObjective();
 
-                /*if(neighbor_sol->machine_completion_time[i] > Instance::v_peak_start[0]){
-                    neighbor_sol->CalculateHorizonAvoidingPeakMachine(i);
-                    neighbor_sol->CalculateObjectiveMachine(i);
+                    if(non_dominated_set.AddSolution(neighbor_solution)){
 
-                    //Tentar adicionar o vizinho gerado no conjunto não-dominado
-                    //Se conseguiu, então retorna true, senão continua a busca
-                    //if(AddSolution(neighbor_sol, non_dominated_set)){
-                    if(non_dominated_set.AddSolution(neighbor_sol)){
+                        delete neighbor_solution;
+
                         return true;
+
                     }
-                }*/
+                }
 
-                neighbor_sol->SwapInsideDelta(i, k, j);
-
+                //*ini_solution = *neighbor_sol_ref;
             }
-
-            neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-            neighbor_sol->CalculateObjectiveMachine(i);
         }
     //}
-
-    delete neighbor_sol;
+    delete neighbor_solution;
 
     //Retorna falso, caso não consiga encontrar um vizinho melhor
     return false;
@@ -680,22 +708,29 @@ bool SwapInsideLS_BI(LSSolution *my_solution, NDSetSolution<LSSolution*> &non_do
  * no conjunto não-dominado (first improvement), ou até percorrer toda a vizinhança
  * Ele retorna verdadeiro, caso consiga adicionar um vizinho ao conjunto não-dominado
  */
-bool SwapOutsideLS_FI(LSSolution* my_solution, NDSetSolution<LSSolution*> &non_dominated_set)
+bool SwapOutsideLS_FI(LSSolution* ini_solution, NDSetSolution<LSSolution*> &non_dominated_set)
 {
     unsigned long num_job_maq1, num_job_maq2;
 
-    LSSolution *neighbor_sol = new LSSolution();
-
-    *neighbor_sol = *my_solution;
+    LSSolution *neighbor_solution = new LSSolution(*ini_solution);
 
     //Para cada máquina i1 de 1 à n
-    //for (unsigned i1 = 1; i1 <= Instance::num_machine-1; i1++) {
-    unsigned i1 = neighbor_sol->GetMakespanMachine();
-        num_job_maq1 = neighbor_sol->scheduling[i1].size();
+    for (unsigned i1 = 1; i1 <= Instance::num_machine; i1++) {
+
+        num_job_maq1 = ini_solution->scheduling[i1].size();
+
+        if(num_job_maq1<1){
+            continue;
+        }
 
         //Para cada máquina i2 de i1+1 à n
         for (unsigned i2 = i1+1; i2 <= Instance::num_machine; i2++) {
-            num_job_maq2 = neighbor_sol->scheduling[i2].size();
+
+            num_job_maq2 = ini_solution->scheduling[i2].size();
+
+            if(num_job_maq2<1 || i1 == i2){
+                continue;
+            }
 
             //Para cada tarefa j da máquina i1
             for (unsigned j = 0; j < num_job_maq1; j++) {
@@ -703,53 +738,43 @@ bool SwapOutsideLS_FI(LSSolution* my_solution, NDSetSolution<LSSolution*> &non_d
                 //Para cada tarefa k da máquina i2
                 for (unsigned k = 0; k < num_job_maq2; ++k) {
 
-                    //Criar uma cópia da solução
-                    //*neighbor_sol = *my_solution;
-
                     //Gerar vizinho com a troca de tarefas entre máquinas
-                    neighbor_sol->SwapOutsideDelta(i1, j, i2, k);
-                    /*neighbor_sol->SwapOutside(i1, j, i2, k);
+                    neighbor_solution->SwapOutside(i1, j, i2, k);
+                    neighbor_solution->CalculateShorterTimeHorizonMachine(i1);
+                    neighbor_solution->CalculateShorterTimeHorizonMachine(i2);
+                    neighbor_solution->CalculateObjectiveMachine(i1);
+                    neighbor_solution->CalculateObjectiveMachine(i2);
 
+                    //Verificar se houve melhora global
+                    if(non_dominated_set.AddSolution(neighbor_solution)){
 
-                    neighbor_sol->CalculateShorterTimeHorizon();
-                    neighbor_sol->CalculateObjective();*/
+                        delete neighbor_solution;
 
-                    //Tentar adicionar o vizinho gerado no conjunto não-dominado
-                    //Se conseguiu, então retorna true
-                    //if(AddSolution(neighbor_sol, non_dominated_set)){
-                    if(non_dominated_set.AddSolution(neighbor_sol)){
                         return true;
                     }
+                    else if(neighbor_solution->makeSpan > Instance::v_peak_start[0]){
+                        neighbor_solution->CalculateHorizonAvoidingPeak();
+                        neighbor_solution->CalculateObjective();
 
-                    /*if(neighbor_sol->machine_completion_time[i1] > Instance::v_peak_start[0] || neighbor_sol->machine_completion_time[i2] > Instance::v_peak_start[0]){
+                        if(non_dominated_set.AddSolution(neighbor_solution)){
 
-                        neighbor_sol->CalculateHorizonAvoidingPeakMachine(i1);
-                        neighbor_sol->CalculateObjectiveMachine(i1);
+                            delete neighbor_solution;
 
-                        neighbor_sol->CalculateHorizonAvoidingPeakMachine(i2);
-                        neighbor_sol->CalculateObjectiveMachine(i2);
-
-                        //Tentar adicionar o vizinho gerado no conjunto não-dominado
-                        //Se conseguiu, então retorna true, senão continua a busca
-                        //if(AddSolution(neighbor_sol, non_dominated_set)){
-                        if(non_dominated_set.AddSolution(neighbor_sol)){
                             return true;
-                        }
-                    }*/
 
-                    neighbor_sol->SwapOutsideDelta(i2, k, i1, j);
+                        }
+                    }
+
+                    *neighbor_solution = *ini_solution;
                 }
 
-                neighbor_sol->CalculateShorterTimeHorizonMachine(i1);
-                neighbor_sol->CalculateObjectiveMachine(i1);
-
-                neighbor_sol->CalculateShorterTimeHorizonMachine(i2);
-                neighbor_sol->CalculateObjectiveMachine(i2);
             }
-        }
-    //}
 
-    delete neighbor_sol;
+        }
+    }
+
+    delete neighbor_solution;
+
     //Retorna falso, caso não consiga encontrar um vizinho melhor
     return false;
 }
@@ -831,65 +856,66 @@ bool SwapOutsideLS_BI(LSSolution* my_solution, NDSetSolution<LSSolution*> &non_d
  * no conjunto não-dominado (first improvement), ou até percorrer toda a vizinhança
  * Ele retorna verdadeiro, caso consiga adicionar um vizinho ao conjunto não-dominado
  */
-bool InsertInsideLS_FI(LSSolution* my_solution, NDSetSolution<LSSolution *> &non_dominated_set)
+bool InsertInsideLS_FI(LSSolution* ini_solution, NDSetSolution<LSSolution *> &non_dominated_set)
 {
+
+    LSSolution *neighbor_solution = new LSSolution(*ini_solution);
+
     unsigned long num_job_maq;
 
-    LSSolution *neighbor_sol = new LSSolution();
-
-    *neighbor_sol = *my_solution;
-
     //Para cada máquina i de 1 à n
+    //O TEC não muda em troca dentro da mesma máquina
+    //O makespan só muda no máquina onde está o makespan
+    unsigned i = ini_solution->GetMakespanMachine();
     //for (unsigned i = 1; i <= Instance::num_machine; i++) {
-    unsigned i = neighbor_sol->GetMakespanMachine();
-        num_job_maq = neighbor_sol->scheduling[i].size();
+
+        num_job_maq = ini_solution->scheduling[i].size();
+
+        if(num_job_maq < 2){
+
+            delete neighbor_solution;
+
+            //continue;
+            return false;
+        }
 
         //Para cada tarefa j da máquina i
-        for (unsigned j = 0; j < num_job_maq; j++) {
+        for (unsigned j = 0; j < num_job_maq-1; j++) {
 
             //Para cada tarefa k da máquina i
-            for (unsigned k = 0; k < num_job_maq; ++k) {
+            for (unsigned k = j+1; k < num_job_maq; ++k) {
 
-                if(j != k){
+                //Gerar vizinho com a troca de tarefas em uma máquina
+                neighbor_solution->InsertInside(i, j, k);
+                neighbor_solution->CalculateShorterTimeHorizonMachine(i);
+                neighbor_solution->CalculateObjectiveMachine(i);
 
-                    //Criar uma cópia da solução
-                    //*neighbor_sol = *my_solution;
+                //Verificar se houve melhora global
+                if(non_dominated_set.AddSolution(neighbor_solution)){
 
-                    //Realizar a inserção
-                    neighbor_sol->InsertInsideDelta(i, j, k);
-                    /*neighbor_sol->InsertInside(i, j, k);
+                    delete neighbor_solution;
 
-                    neighbor_sol->CalculateShorterTimeHorizon();
-                    neighbor_sol->CalculateObjective();*/
+                    return true;
+                }
+                else if(neighbor_solution->makeSpan > Instance::v_peak_start[0]){
+                    neighbor_solution->CalculateHorizonAvoidingPeak();
+                    neighbor_solution->CalculateObjective();
 
-                    //Tentar adicionar o vizinho gerado no conjunto não-dominado
-                    //Se conseguiu, então retorna true
-                    //if(AddSolution(neighbor_sol, non_dominated_set)){
-                    if(non_dominated_set.AddSolution(neighbor_sol)){
+                    if(non_dominated_set.AddSolution(neighbor_solution)){
+
+                        delete neighbor_solution;
+
                         return true;
+
                     }
-
-                    /*if(neighbor_sol->machine_completion_time[i] > Instance::v_peak_start[0]){
-
-                        neighbor_sol->CalculateHorizonAvoidingPeakMachine(i);
-                        neighbor_sol->CalculateObjectiveMachine(i);
-
-                        if(non_dominated_set.AddSolution(neighbor_sol)){
-                            return true;
-                        }
-                    }*/
-
-                    neighbor_sol->InsertInsideDelta(i, k, j);
                 }
 
+                *neighbor_solution = *ini_solution;
             }
-
-            neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-            neighbor_sol->CalculateObjectiveMachine(i);
         }
     //}
 
-    delete neighbor_sol;
+    delete neighbor_solution;
 
     //Retorna falso, caso não consiga encontrar um vizinho melhor
     return false;
@@ -962,82 +988,71 @@ bool InsertInsideLS_BI(LSSolution* my_solution, NDSetSolution<LSSolution *> &non
  * no conjunto não-dominado (first improvement), ou até percorrer toda a vizinhança
  * Ele retorna verdadeiro, caso consiga adicionar um vizinho ao conjunto não-dominado
  */
-bool InsertOutsideLS_FI(LSSolution *my_solution, NDSetSolution<LSSolution *> &non_dominated_set)
+bool InsertOutsideLS_FI(LSSolution *ini_solution, NDSetSolution<LSSolution *> &non_dominated_set)
 {
-    unsigned long num_job_maq1, num_job_maq2;
+    unsigned num_job_maq1, num_job_maq2;
 
-    LSSolution *neighbor_sol = new LSSolution();
+    LSSolution *neighbor_solution = new LSSolution(*ini_solution);
 
+    for (unsigned i1 = 1; i1 <= Instance::num_machine; i1++) {
 
-    *neighbor_sol = *my_solution;
+        num_job_maq1 = ini_solution->scheduling[i1].size();
 
-    //Para cada máquina i1 de 1 à n
-    //for (unsigned i1 = 1; i1 <= Instance::num_machine; i1++) {
-    unsigned i1 = neighbor_sol->GetMakespanMachine();
-        num_job_maq1 = neighbor_sol->scheduling[i1].size();
+        if(num_job_maq1 < 1){
+            continue;
+        }
 
         //Para cada máquina i2 de i1+1 à n
         for (unsigned i2 = 1; i2 <= Instance::num_machine; i2++) {
-            num_job_maq2 = neighbor_sol->scheduling[i2].size();
 
-            if(i1 != i2){
-                //Para cada tarefa j da máquina i1
-                for (unsigned j = 0; j < num_job_maq1; j++) {
+            if(i1 == i2){
+                continue;
+            }
 
-                    //Para cada tarefa k da máquina i2
-                    for (unsigned k = 0; k <= num_job_maq2; ++k) {
+            num_job_maq2 = ini_solution->scheduling[i2].size();
 
-                        //Criar uma cópia da solução
-                        //*neighbor_sol = *my_solution;
+            //Para cada tarefa j da máquina i1
+            for (unsigned j = 0; j < num_job_maq1; j++) {
 
-                        //Realizar a troca
-                        neighbor_sol->InsertOutsideDelta(i1, j, i2, k);
-                        /*neighbor_sol->InsertOutside(i1, j, i2, k);
+                //Para cada tarefa k da máquina i2
+                for (unsigned k = 0; k <= num_job_maq2; ++k) {
 
-                        neighbor_sol->CalculateShorterTimeHorizon();
-                        neighbor_sol->CalculateObjective();*/
+                    //Gerar vizinho com a troca de tarefas entre máquinas
+                    neighbor_solution->InsertOutside(i1, j, i2, k);
+                    neighbor_solution->CalculateShorterTimeHorizonMachine(i1);
+                    neighbor_solution->CalculateShorterTimeHorizonMachine(i2);
+                    neighbor_solution->CalculateObjectiveMachine(i1);
+                    neighbor_solution->CalculateObjectiveMachine(i2);
 
-                        //Tentar adicionar o vizinho gerado no conjunto não-dominado
-                        //Se conseguiu, então retorna true
-                        //if(AddSolution(neighbor_sol, non_dominated_set)){
+                    //Verificar se houve melhora global
+                    if(non_dominated_set.AddSolution(neighbor_solution)){
 
+                        delete neighbor_solution;
 
-                        if(non_dominated_set.AddSolution(neighbor_sol)){
+                        return true;
+                    }
+                    else if(neighbor_solution->makeSpan > Instance::v_peak_start[0]){
+                        neighbor_solution->CalculateHorizonAvoidingPeak();
+                        neighbor_solution->CalculateObjective();
+
+                        if(non_dominated_set.AddSolution(neighbor_solution)){
+
+                            delete neighbor_solution;
 
                             return true;
+
                         }
-
-
-                        /*if(neighbor_sol->machine_completion_time[i1] > Instance::v_peak_start[0] || neighbor_sol->machine_completion_time[i2] > Instance::v_peak_start[0]){
-
-                            neighbor_sol->CalculateHorizonAvoidingPeakMachine(i1);
-                            neighbor_sol->CalculateObjectiveMachine(i1);
-
-                            neighbor_sol->CalculateHorizonAvoidingPeakMachine(i2);
-                            neighbor_sol->CalculateObjectiveMachine(i2);
-
-                            //Tentar adicionar o vizinho gerado no conjunto não-dominado
-                            //Se conseguiu, então retorna true, senão continua a busca
-                            //if(AddSolution(neighbor_sol, non_dominated_set)){
-                            if(non_dominated_set.AddSolution(neighbor_sol)){
-                                return true;
-                            }
-                        }*/
-
-                        neighbor_sol->InsertOutside(i2, k, i1, j);
                     }
 
-                    neighbor_sol->CalculateShorterTimeHorizonMachine(i1);
-                    neighbor_sol->CalculateObjectiveMachine(i1);
+                    *neighbor_solution = *ini_solution;
 
-                    neighbor_sol->CalculateShorterTimeHorizonMachine(i2);
-                    neighbor_sol->CalculateObjectiveMachine(i2);
                 }
+
             }
         }
-    //}
+    }
 
-    delete neighbor_sol;
+    delete neighbor_solution;
 
     //Retorna falso, caso não consiga encontrar um vizinho melhor
     return false;
@@ -1120,73 +1135,58 @@ bool InsertOutsideLS_BI(LSSolution *my_solution, NDSetSolution<LSSolution *> &no
  * no conjunto não-dominado (first improvement), ou até percorrer toda a vizinhança
  * Ele retorna verdadeiro, caso consiga adicionar um vizinho ao conjunto não-dominado
  */
-bool ChangeOpModeLS_FI(LSSolution *my_solution, NDSetSolution<LSSolution *> &non_dominated_set)
+bool ChangeOpModeLS_FI(LSSolution *ini_solution, NDSetSolution<LSSolution *> &non_dominated_set)
 {
-    unsigned long num_job_maq, job, old_op;
+    unsigned long num_job_maq;
 
-    LSSolution *neighbor_sol = new LSSolution();
-
-    *neighbor_sol = *my_solution;
+    LSSolution *neighbor_solution = new LSSolution(*ini_solution);
 
     //Para cada máquina i de 1 à n
     for (unsigned i = 1; i <= Instance::num_machine; i++) {
-        num_job_maq = neighbor_sol->scheduling[i].size();
+
+        num_job_maq = ini_solution->scheduling[i].size();
 
         //Para cada tarefa j da máquina i
         for (unsigned j = 0; j < num_job_maq; j++) {
 
-            job = neighbor_sol->scheduling[i][j];
-
-            old_op = neighbor_sol->job_mode_op[job];
-
             //Para cada modo de operração k
             for (unsigned k = 1; k <= Instance::num_mode_op; ++k) {
 
-
-                //Criar uma cópia da solução
-                //*neighbor_sol = *my_solution;
-
-
-                if(old_op != k){
-
-                    neighbor_sol->ChangeModeOpJobDelta(i, j, k);
-                    /*neighbor_sol->ChangeModeOpJob(i, j, k);
-
-                    neighbor_sol->CalculateShorterTimeHorizon();
-                    neighbor_sol->CalculateObjective();*/
-
-                    //Tentar adicionar o vizinho gerado no conjunto não-dominado
-                    //Se conseguiu, então retorna true
-                    //if(AddSolution(neighbor_sol, non_dominated_set)){
-                    if(non_dominated_set.AddSolution(neighbor_sol)){
-
-                        return true;
-                    }
-
-                    /*if(neighbor_sol->machine_completion_time[i] > Instance::v_peak_start[0]){
-
-                        neighbor_sol->CalculateHorizonAvoidingPeakMachine(i);
-                        neighbor_sol->CalculateObjectiveMachine(i);
-
-                        if(non_dominated_set.AddSolution(neighbor_sol)){
-                            return true;
-                        }
-                    }*/
-
-                    neighbor_sol->ChangeModeOpJobDelta(i, j, old_op);
-
+                auto job = ini_solution->scheduling[i][j];
+                if(k == ini_solution->job_mode_op[job]){
+                    continue;
                 }
 
+                neighbor_solution->ChangeModeOpJob(i, j, k);
+                neighbor_solution->CalculateShorterTimeHorizonMachine(i);
+                neighbor_solution->CalculateObjectiveMachine(i);
 
+                //Verificar se houve melhora global
+                if(non_dominated_set.AddSolution(neighbor_solution)){
 
+                    delete neighbor_solution;
+
+                    return true;
+                }
+                else if(neighbor_solution->makeSpan > Instance::v_peak_start[0]){
+                    neighbor_solution->CalculateHorizonAvoidingPeak();
+                    neighbor_solution->CalculateObjective();
+
+                    if(non_dominated_set.AddSolution(neighbor_solution)){
+
+                        delete neighbor_solution;
+
+                        return true;
+
+                    }
+                }
+
+                *neighbor_solution = *ini_solution;
             }
-
-            neighbor_sol->CalculateShorterTimeHorizonMachine(i);
-            neighbor_sol->CalculateObjectiveMachine(i);
         }
     }
 
-    delete neighbor_sol;
+    delete neighbor_solution;
 
     //Retorna falso, caso não consiga encontrar um vizinho melhor
     return false;

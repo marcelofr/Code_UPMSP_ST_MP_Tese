@@ -339,88 +339,179 @@ void MORVNS(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data alg_d
 
 void MOVNS(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1)
 {
-    NDSetSolution<LSSolution *> nd_set_solution_shaked;
-    unsigned op_neighbor;
-    LSSolution *current_solution;
-    LSSolution *shaked_solution;
+    LSSolution * neighbor_solution = new LSSolution();
+    unsigned op_neighboor;
+    unsigned num_neighboor;
+
+    //---------------------Manter atualizado
+    //Número de vizinhanças
+    num_neighboor=5;
+    auto perturbation_level = 2;
+    //---------------------
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        //Selecionar aleatoriamente uma estrutura de vizinhança
-        op_neighbor=rand()%alg_data.qtd_neighbor;
+        op_neighboor = 0;
 
-        //Shaking
-        current_solution = SelectNonDomintatedSolution(non_dominated_set);
-        current_solution->was_visited = true;
+        unsigned OP_BUSCA = 0;
 
-        shaked_solution = new LSSolution ();
-        *shaked_solution = *current_solution;
-        Shaking(shaked_solution, op_neighbor, 1);
-        /*shaked_solution->CalculateShorterTimeHorizon();
-        shaked_solution->CalculateObjective();*/
+        while (op_neighboor < num_neighboor && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        //Local search
-        for(auto it : nd_set_solution_shaked.set_solution){
-            delete it;
+            auto s_index = rand()%non_dominated_set.set_solution.size();
+            non_dominated_set.set_solution[s_index]->was_visited = true;
+            *neighbor_solution = *non_dominated_set.set_solution[s_index];
+            Shaking(neighbor_solution, perturbation_level);
+
+            switch (op_neighboor) {
+                case 0:
+                    //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                    if(OP_BUSCA==0)
+                        SwapInsideLS_FI(neighbor_solution, non_dominated_set);
+                    //else
+                        //improve=SwapInsideLSMonoBI(neighbor_solution);
+                    break;
+                case 1:
+                    if(OP_BUSCA==0)
+                        InsertInsideLS_FI(neighbor_solution, non_dominated_set);
+                    //else
+                        //improve=InsertInsideLSMonoBI(neighbor_solution);
+                    break;
+                case 2:
+                    //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                    if(OP_BUSCA==0)
+                        SwapOutsideLS_FI(neighbor_solution, non_dominated_set);
+                    //else
+                        //improve=SwapOutsideLSMonoBI(neighbor_solution);
+                    break;
+                case 3:
+                    if(OP_BUSCA==0)
+                        InsertOutsideLS_FI(neighbor_solution, non_dominated_set);
+                    //else
+                        //improve=InsertOutsideLSMonoBI(neighbor_solution);
+                    break;
+                case 4:
+                    //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
+                    if(OP_BUSCA==0)
+                        ChangeOpModeLS_FI(neighbor_solution, non_dominated_set);
+                    /*else
+                        improve=ChangeOpModeLSMonoBI(neighbor_solution);*/
+                    break;
+            }
+
+            //Seguir para próxima vizinhança
+            op_neighboor++;
+
+            t1->stop();
+
         }
-        nd_set_solution_shaked.set_solution.clear();
-        nd_set_solution_shaked.AddSolution(shaked_solution);
-        delete shaked_solution;
 
-        LS_BI_OP(nd_set_solution_shaked, non_dominated_set, op_neighbor);
+        auto all_visited=true;
+        for(auto it_sol:non_dominated_set.set_solution){
+            if(!it_sol->was_visited){
+                all_visited=false;
+                break;
+            }
+        }
+        if(all_visited){
+            perturbation_level++;
+            if(perturbation_level > 10){
+                perturbation_level=2;
+            }
+        }
 
         t1->stop();
 
     }
+
+    delete neighbor_solution;
 }
 
 void MOVNS_Arroyo(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data alg_data, Timer *t1)
 {
 
-    NDSetSolution<LSSolution *> nd_set_solution_shaked;
-    unsigned op_neighbor, index;
-    LSSolution *current_solution;
-    LSSolution *shaked_solution;
+    LSSolution * neighbor_solution = new LSSolution();
+    unsigned op_neighboor, intensification_level;
+    unsigned num_neighboor;
 
-    shaked_solution = new LSSolution ();
+    //---------------------Manter atualizado
+    //Número de vizinhanças
+    num_neighboor=5;
+    //Nível da perturbação
+    intensification_level = alg_data.param.u_destruction_factor;
+    auto perturbation_level = 2;
 
-    const double destruction_rate = double(alg_data.param.u_destruction_factor)/double(100);
+    //---------------------
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        //Selecionar aleatoriamente uma estrutura de vizinhanÃ§a
-        op_neighbor=rand()%alg_data.qtd_neighbor;
+        op_neighboor = 0;
 
-        //Shaking
-        current_solution = SelectNonDomintatedSolution(non_dominated_set);
-        *shaked_solution = *current_solution;
+        unsigned OP_BUSCA = 0;
 
-        current_solution->was_visited = true;
+        while (op_neighboor < num_neighboor && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        Shaking(shaked_solution, op_neighbor, 1);
+            auto s_index = rand()%non_dominated_set.set_solution.size();
+            *neighbor_solution = *non_dominated_set.set_solution[s_index];
+            Shaking(neighbor_solution, perturbation_level);
 
-        //Local search
-        for(auto it : nd_set_solution_shaked.set_solution){
-            delete it;
+            switch (op_neighboor) {
+                case 0:
+                    //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                    if(OP_BUSCA==0)
+                        SwapInsideLS_FI(neighbor_solution, non_dominated_set);
+                    //else
+                        //improve=SwapInsideLSMonoBI(neighbor_solution);
+                    break;
+                case 1:
+                    if(OP_BUSCA==0)
+                        InsertInsideLS_FI(neighbor_solution, non_dominated_set);
+                    //else
+                        //improve=InsertInsideLSMonoBI(neighbor_solution);
+                    break;
+                case 2:
+                    //Explorar a solução escohida em relação a vizinhança de troca entre máquinas
+                    if(OP_BUSCA==0)
+                        SwapOutsideLS_FI(neighbor_solution, non_dominated_set);
+                    //else
+                        //improve=SwapOutsideLSMonoBI(neighbor_solution);
+                    break;
+                case 3:
+                    if(OP_BUSCA==0)
+                        InsertOutsideLS_FI(neighbor_solution, non_dominated_set);
+                    //else
+                        //improve=InsertOutsideLSMonoBI(neighbor_solution);
+                    break;
+                case 4:
+                    //Explorar a solução escohida em relação a vizinhança de mudança de modo de operação
+                    if(OP_BUSCA==0)
+                        ChangeOpModeLS_FI(neighbor_solution, non_dominated_set);
+                    /*else
+                        improve=ChangeOpModeLSMonoBI(neighbor_solution);*/
+                    break;
+            }
+
+            //Seguir para próxima vizinhança
+            op_neighboor++;
+
+            //Se não tem próxima vizinhança, fazer a intensificação
+            if(op_neighboor == num_neighboor){
+
+                auto s_index = rand()%non_dominated_set.set_solution.size();
+
+                *neighbor_solution = *non_dominated_set.set_solution[s_index];
+
+                IntesificationArroyo(neighbor_solution, non_dominated_set, intensification_level);
+            }
+
+            t1->stop();
+
         }
-        nd_set_solution_shaked.set_solution.clear();
-        nd_set_solution_shaked.AddSolution(shaked_solution);
-
-
-        LS_BI_OP(nd_set_solution_shaked, non_dominated_set, op_neighbor);
-        //LS_FI_OP(nd_set_solution_shaked, non_dominated_set, op_neighbor);
-
-        //Intensification
-        index = rand()%non_dominated_set.set_solution.size();
-        *shaked_solution = *non_dominated_set.set_solution[index];
-        //shaked_solution->was_visited = false;
-        IntesificationArroyo(shaked_solution, non_dominated_set, ceil(Instance::num_jobs*destruction_rate));
 
         t1->stop();
 
     }
 
-    delete shaked_solution;
+    delete neighbor_solution;
 
 }
 

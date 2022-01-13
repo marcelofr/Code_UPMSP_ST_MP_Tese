@@ -44,16 +44,16 @@ void RunAlgorithm(algorithm_data alg_data){
         RunAlgorithmNSGAI(alg_data, nd_set_solution, t1);
     }
     else if(alg_data.param.algorithm_name == "MOVNS"){
-        //RunAlgorithmMOVNS(alg_data, nd_set_solution, t1);
+        RunAlgorithmMOVNS(alg_data, nd_set_solution, t1);
     }
     else if(alg_data.param.algorithm_name == "MOVNS_Arroyo"){
-        //RunAlgorithmMOVNSArroyo(alg_data, nd_set_solution, t1);
+        RunAlgorithmMOVNSArroyo(alg_data, nd_set_solution, t1);
     }
     /*else if(alg_data.param.algorithm_name == "MOVNS_Eduardo"){
         RunAlgorithmMOVNSEduardo(alg_data, nd_set_solution, t1);
     }*/
     else if(alg_data.param.algorithm_name == "MOVNS_D"){
-        RunAlgorithmMono(alg_data, nd_set_solution, t1);
+        RunAlgorithmMOVNSD(alg_data, nd_set_solution, t1);
     }
 
     t1->stop();
@@ -319,75 +319,129 @@ void Discretize(unsigned factor){
 
 }
 
-//void RunAlgorithmMOVNS(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
+void RunAlgorithmMOVNS(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
 
-//    NDSetSolution<LSSolution *> *non_dominated_set_ls = new NDSetSolution<LSSolution *>();
+    NDSetSolution<LSSolution*> *obj_nd_set_solution = new NDSetSolution<LSSolution*>();
 
-//    //non_dominated_set_ls->ConstrutiveGreedy();
-//    //non_dominated_set_ls->ConstrutiveRandom(1);
-//    //non_dominated_set_ls->ContrutiveGRASP(0.5, alg_data.param.u_population_size, 1);
-//    non_dominated_set_ls->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+#ifdef DEBUG
+    cout << "===========Inicio Solução Inicial===========" << endl;
+#endif
 
-//    #ifdef DEBUG
-//        cout << "===========Inicio Solução Inicial===========" << endl;
-//        non_dominated_set_ls->PrintSetSolution();
-//        cout << "===========Fim Solução Inicial===========" << endl << endl;
-//    #endif
+    //obj_nd_set_solution->ConstrutiveGreedy();
+
+    //--Gerar solução ponderada
+    NDSetSolution<MonoSolution *> *non_dominated_set_local_2 = new NDSetSolution<MonoSolution *>();
+    non_dominated_set_local_2->ConstrutiveGreedyWeight(alg_data.param.u_population_size);
+    obj_nd_set_solution->set_solution.clear();
+    for(auto it:non_dominated_set_local_2->set_solution){
+        obj_nd_set_solution->AddSolution(it);
+    }
+    //---
+
+#ifdef DEBUG
+    obj_nd_set_solution->PrintSetSolution();
+    cout << "===========Fim Solução Inicial===========" << endl << endl;
+    t1->stop();
+    cout << "Tempo decorrido: " << t1->getElapsedTimeInMilliSec() << endl;
+
+    cout << "Tempo limite: " << alg_data.time_limit << endl;
+
+    cout << endl << "===========Inicio MOVNS===========" << endl;
+#endif
+
+    alg_data.qtd_neighbor = QTD_NEIGHBOR;
+
+    MOVNS(*obj_nd_set_solution, alg_data, t1);
+
+    SortByMakespanLSSolution(obj_nd_set_solution->set_solution);
+
+    //Criar um novo conjunto para ajudar a remover soluções repetidas
+    NDSetSolution<LSSolution *> *non_dominated_set_local = new NDSetSolution<LSSolution *>();
+
+    non_dominated_set_local->set_solution.clear();
+    for(auto it:obj_nd_set_solution->set_solution){
+        non_dominated_set_local->AddSolution(it);
+    }
+
+#ifdef DEBUG
+
+    non_dominated_set_local->PrintSetSolution();
+    t1->printElapsedTimeInMilliSec();
+
+    cout << "===========Fim MOVNS===========" << endl << endl;
+
+#endif
+
+    non_dominated_set.clear();
+    for(auto it:non_dominated_set_local->set_solution){
+        non_dominated_set.push_back(it);
+    }
+
+    delete obj_nd_set_solution;
+}
+
+void RunAlgorithmMOVNSArroyo(algorithm_data alg_data, vector<Solution*> &nd_set_solution, Timer *t1){
+
+    NDSetSolution<LSSolution*> *obj_nd_set_solution = new NDSetSolution<LSSolution*>();
+
+#ifdef DEBUG
+    cout << "===========Inicio Solução Inicial===========" << endl;
+#endif
+
+    //obj_nd_set_solution->ConstrutiveGreedy();
 
 
-//    MOVNS(*non_dominated_set_ls, alg_data, t1);
+    //----Gerar solução ponderada
+    //Criar um novo conjunto para ajudar a remover soluções repetidas
+    NDSetSolution<MonoSolution *> *non_dominated_set_local_2 = new NDSetSolution<MonoSolution *>();
+    non_dominated_set_local_2->ConstrutiveGreedyWeight(alg_data.param.u_initial_size);
+    obj_nd_set_solution->set_solution.clear();
+    for(auto it:non_dominated_set_local_2->set_solution){
+        obj_nd_set_solution->AddSolution(it);
+    }
+    //-----
 
-//    #ifdef DEBUG
-//        cout << "===========Inicio MOVNS===========" << endl;
-//        non_dominated_set_ls->PrintSetSolution();
-//        t1->printElapsedTimeInMilliSec();
-//        cout << "===========Fim MOVNS===========" << endl << endl;
-//    #endif
+#ifdef DEBUG
+    obj_nd_set_solution->PrintSetSolution();
+    cout << "===========Fim Solução Inicial===========" << endl << endl;
+    t1->stop();
+    cout << "Tempo decorrido: " << t1->getElapsedTimeInMilliSec() << endl;
 
-//    non_dominated_set.clear();
-//    for(auto it:non_dominated_set_ls->set_solution){
-//        non_dominated_set.push_back(it);
-//    }
+    cout << "Tempo limite: " << alg_data.time_limit << endl;
 
-//    delete non_dominated_set_ls;
-//}
+    cout << endl << "===========Inicio MOVNS Arroyo===========" << endl;
+#endif
 
-//void RunAlgorithmMOVNSArroyo(algorithm_data alg_data, vector<Solution*> &nd_set_solution, Timer *t1){
+    alg_data.qtd_neighbor = QTD_NEIGHBOR;
 
-//    NDSetSolution<LSSolution*> *obj_nd_set_solution = new NDSetSolution<LSSolution*>();
+    MOVNS_Arroyo(*obj_nd_set_solution, alg_data, t1);
 
-//    //obj_nd_set_solution->ConstrutiveGreedy();
-//    //obj_nd_set_solution->ConstructiveCombinatorialSolution();
-//    //obj_nd_set_solution->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
-//    //obj_nd_set_solution->ContrutiveGRASP(0.5, alg_data.param.u_population_size, 1);
-//    //obj_nd_set_solution->ConstrutiveRandom(100);
-//    obj_nd_set_solution->ConstrutiveGreedyAndRandom(alg_data.param.u_population_size);
+    SortByMakespanLSSolution(obj_nd_set_solution->set_solution);
 
-//    #ifdef DEBUG
-//        cout << "===========Inicio Solução Inicial===========" << endl;
-//        obj_nd_set_solution->PrintSetSolution();
-//        cout << "===========Fim Solução Inicial===========" << endl << endl;
-//    #endif
+    //Criar um novo conjunto para ajudar a remover soluções repetidas
+    NDSetSolution<LSSolution *> *non_dominated_set_local = new NDSetSolution<LSSolution *>();
 
-//    alg_data.qtd_neighbor = QTD_NEIGHBOR;
+    non_dominated_set_local->set_solution.clear();
+    for(auto it:obj_nd_set_solution->set_solution){
+        non_dominated_set_local->AddSolution(it);
+    }
 
-//    MOVNS_Arroyo(*obj_nd_set_solution, alg_data, t1);
+#ifdef DEBUG
 
-//    #ifdef DEBUG
-//        cout << "===========Inicio MOVNS Arroyo===========" << endl;
-//        SortByMakespanLSSolution(obj_nd_set_solution->set_solution);
-//        obj_nd_set_solution->PrintSetSolution();
-//        t1->printElapsedTimeInMilliSec();
-//        cout << "===========Fim MOVNS Arroyo===========" << endl << endl;
-//    #endif
+    non_dominated_set_local->PrintSetSolution();
+    t1->printElapsedTimeInMilliSec();
 
-//    nd_set_solution.clear();
-//    for(auto it:obj_nd_set_solution->set_solution){
-//        nd_set_solution.push_back(it);
-//    }
+    cout << "===========Fim MOVNS Arroyo===========" << endl << endl;
 
-//    delete obj_nd_set_solution;
-//}
+#endif
+
+    nd_set_solution.clear();
+    for(auto it:non_dominated_set_local->set_solution){
+        nd_set_solution.push_back(it);
+    }
+
+    delete obj_nd_set_solution;
+}
 
 /*void RunAlgorithmMOVNSEduardo(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
 
@@ -426,7 +480,7 @@ void Discretize(unsigned factor){
     delete non_dominated_set_ls;
 }*/
 
-void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
+void RunAlgorithmMOVNSD(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1){
 
     NDSetSolution<MonoSolution *> *non_dominated_set_ms = new NDSetSolution<MonoSolution *>();
 
@@ -444,6 +498,7 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
     cout << "===========Inicio Solução Inicial===========" << endl;
 #endif
     non_dominated_set_ms->ConstrutiveGreedyWeight(sz);
+    //non_dominated_set_ms->ConstrutiveGreedyAndRandom(sz);
 
 #ifdef DEBUG
     SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
@@ -459,7 +514,6 @@ void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_
 #endif
 
     MOVNS_D(*non_dominated_set_ms, alg_data, t1);
-    //MOVNS_D_Vivian(*non_dominated_set_ms, alg_data, t1);
 
     SortByMakespanMonoSolution(non_dominated_set_ms->set_solution);
 

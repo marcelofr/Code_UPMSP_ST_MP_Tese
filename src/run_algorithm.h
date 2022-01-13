@@ -41,9 +41,9 @@ void RunAlgorithmSPEA2(algorithm_data alg_data, vector<Solution*> &non_dominated
 void RunAlgorithmMOGA(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 void RunAlgorithmNSGAI(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 
-//void RunAlgorithmMOVNS(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
-//void RunAlgorithmMOVNSArroyo(algorithm_data alg_data, vector<Solution*> &nd_set_solution, Timer *t1);
+void RunAlgorithmMOVNS(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
+void RunAlgorithmMOVNSArroyo(algorithm_data alg_data, vector<Solution*> &nd_set_solution, Timer *t1);
 //void RunAlgorithmMOVNSEduardo(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
-void RunAlgorithmMono(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
+void RunAlgorithmMOVNSD(algorithm_data alg_data, vector<Solution*> &non_dominated_set, Timer *t1);
 
 #endif // RUN_ALGORITHM_H

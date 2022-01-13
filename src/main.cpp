@@ -28,6 +28,7 @@ int main(int argc, char** argv)
         }
         else if(alg_data.param.algorithm_name == "MOVNS_Arroyo"){
             alg_data.param.s_destruction_factor = argv[8];
+            alg_data.param.s_initial_size = argv[9];
         }
         else if(alg_data.param.algorithm_name == "MOVNS_D"){
             alg_data.param.s_decomposition_size = argv[8];
@@ -44,13 +45,13 @@ int main(int argc, char** argv)
     }
     else{
 
-        Instance::discretization_factor = 10;
+        Instance::discretization_factor = 1;
 
-        alg_data.param.instance_folder = "../../Instances/SMALL/"; alg_data.param.instance_name = "6_2_1439_3_S_1-9";
+        //alg_data.param.instance_folder = "../../Instances/SMALL/"; alg_data.param.instance_name = "6_2_1439_3_S_1-9";
         //alg_data.param.instance_folder = "../../Instances/SMALL_2022_01_12/"; alg_data.param.instance_name = "6_2_1439_3_S_1-9";
-        //alg_data.param.instance_folder = "../../Instances/SMALL/"; alg_data.param.instance_name = "9_2_1439_3_S_1-9";
-        //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "50_20_1439_5_S_1-9";
-        //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "250_10_1439_5_S_1-124";
+        //alg_data.param.instance_folder = "../../Instances/SMALL/"; alg_data.param.instance_name = "8_2_1439_3_S_1-9";
+        //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "50_10_1439_5_S_1-9";
+        alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "250_10_1439_5_S_1-124";
         //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "750_10_1439_5_S_1-124";
         //alg_data.param.instance_folder = "../../Instances/LARGE/"; alg_data.param.instance_name = "750_10_1439_5_S_1-9";
 
@@ -59,9 +60,12 @@ int main(int argc, char** argv)
 
         //alg_data.param.s_seed = "50396";
         //alg_data.param.s_seed = "6241";
-        alg_data.param.s_seed = "45433";
+        alg_data.param.s_seed = "10217";
 
-        alg_data.param.algorithm_name = "MOVNS_D";
+
+        //alg_data.param.algorithm_name = "MOVNS";
+        alg_data.param.algorithm_name = "MOVNS_Arroyo";
+        //alg_data.param.algorithm_name = "MOVNS_D";
         //alg_data.param.algorithm_name = "NSGAII"; //nsga-ii
         //alg_data.param.algorithm_name = "EXACT";
         //alg_data.param.algorithm_name = "SPEA2";
@@ -72,10 +76,10 @@ int main(int argc, char** argv)
         //alg_data.param.algorithm_name = "GENERATE_SMALL_INSTANCES";
         //alg_data.param.algorithm_name = "GENERATE_LARGE_INSTANCES";
 
-        alg_data.param.s_max_time_factor = "2000";
-        alg_data.param.folder_solution = "../../Solutions/SMALL_11_01_2022_21_08/";
+        alg_data.param.s_max_time_factor = "1000";
+        //alg_data.param.folder_solution = "../../Solutions/SMALL_12_01_2022_10_56/";
         //alg_data.param.folder_solution = "../../Solutions/LARGE_8/";
-        //alg_data.param.folder_solution = "../../Solutions/Test/";
+        alg_data.param.folder_solution = "../../Solutions/Test/";
         alg_data.param.file_solution = alg_data.param.folder_solution + alg_data.param.algorithm_name + "_"
                + alg_data.param.instance_name + "_" + alg_data.param.s_seed +  ".sol";
         alg_data.param.s_alpha = "0.0001";
@@ -86,6 +90,9 @@ int main(int argc, char** argv)
         alg_data.param.s_decomposition_neighboor_size = "8";
 
         alg_data.param.s_destruction_factor = "10";
+
+        alg_data.param.s_destruction_factor = "4";
+        alg_data.param.s_initial_size = "40";
 
     }
 
@@ -99,6 +106,7 @@ int main(int argc, char** argv)
     alg_data.param.d_alpha = atof(alg_data.param.s_alpha.c_str());
     //MOVNS_Arroyo
     alg_data.param.u_destruction_factor = unsigned(atoi(alg_data.param.s_destruction_factor.c_str()));
+    alg_data.param.u_initial_size = unsigned(atoi(alg_data.param.s_initial_size.c_str()));
     //MOVNS_D
     alg_data.param.u_decomposition_size = unsigned(atoi(alg_data.param.s_decomposition_size.c_str()));
     alg_data.param.u_decomposition_neighboor_size = unsigned(atoi(alg_data.param.s_decomposition_neighboor_size.c_str()));

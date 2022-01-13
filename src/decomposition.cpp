@@ -345,8 +345,6 @@ bool InsertInsideLSMonoFI(MonoSolution *neighbor_solution, const MonoSolution *b
     unsigned long num_job_maq;
     double best_objective_funtion;
 
-
-
     //Para cada máquina i de 1 à n
     //O TEC não muda em troca dentro da mesma máquina
     //O makespan só muda no máquina onde está o makespan
@@ -1487,14 +1485,9 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
     //---------------------Manter atualizado
     //Número de vizinhanças
     num_neighboor=5;
-
     //Nível da perturbação
     intensification_level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
-
     index = 0;
-
-    //auto perturbation_level = 4;
-
     //---------------------
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
@@ -1504,18 +1497,6 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
         //Escolher a próxima solução a ser explorada
         best_solution = non_dominated_set.set_solution[s_index];
         best_solution->CalculeMonoObjectiveTchebycheff();
-
-        //cur_solution guarda a solução perturbada
-        //*cur_solution = *best_solution;
-        //*cur_solution = *non_dominated_set.set_solution[s_index];
-
-        //Shaking(cur_solution, op_shake, perturbation_level);
-        //Shaking(cur_solution, perturbation_level);
-
-        /*best_solution->CalculeMonoObjectiveTchebycheff();
-        if(cur_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-            continue;
-        }*/
 
         op_neighboor = 0;
 
@@ -1567,7 +1548,7 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
             if(OP_BUSCA==0){
                 //Verificar se houve melhora
                 if(improve){
-                    CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
+                    //CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
                     *best_solution = *neighbor_solution;
                 }
             }//Se a busca é best improvement
@@ -1575,7 +1556,7 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
                 //Verificar se houve melhora
                 best_solution->CalculeMonoObjectiveTchebycheff();
                 if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-                    CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
+                    //CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
                     *best_solution = *neighbor_solution;
                 }
             }

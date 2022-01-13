@@ -456,6 +456,61 @@ public:
 
     }
 
+    void ConstrutiveGreedyWeight2(unsigned set_size){
+
+        T my_solution;
+        my_solution = nullptr;
+
+        auto eps = 0.01;
+
+        unsigned x,y;
+        x = set_size;
+        y = 0;
+
+        this->set_solution.resize(set_size);
+
+        /*Gerar uma solução gulosa considerando o objetivo do makespan*/
+        my_solution = my_solution->Create();
+        my_solution->weights.first = 1-eps;
+        my_solution->weights.second = eps;
+
+        my_solution->GenerateGreedySolutionMakespan();
+
+        this->set_solution[0] = my_solution;
+
+        /*Gerar uma solução gulosa considerando o objetivo do tec*/
+        my_solution = my_solution->Create();
+
+        my_solution->weights.first = eps;
+        my_solution->weights.second = 1-eps;
+
+        my_solution->GenerateGreedySolutionTEC3();
+
+        this->set_solution[set_size-1] = my_solution;
+
+        x--;
+        y++;
+
+        /*Gerar o restante dos indivíduos aleatoriamente*/
+        for (unsigned i = 1; i < set_size-1; ++i) {
+
+            /*Gerar uma solução gulosa considerando o objetivo do makespan*/
+            my_solution = my_solution->Create();
+
+            my_solution->weights.first = double(y)/double(set_size-1);
+            my_solution->weights.second = double(x-1)/double(set_size-1);
+
+            my_solution->GenerateGreedySolutionWeigth();
+
+            this->set_solution[i] = my_solution;
+
+            x--;
+            y++;
+
+        }
+
+    }
+
 };
 
 void SortByMakespan(vector<Solution*> &set_solution);

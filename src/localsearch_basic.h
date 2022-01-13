@@ -74,6 +74,7 @@ LSSolution *GenNeighborSol(LSSolution *my_solution, unsigned op_neighbor);
 //void Shaking(NDSetSolution<LSSolution *> *non_dominated_set_in, NDSetSolution<LSSolution *> *non_dominated_set_out, unsigned op_neighbor, unsigned level);
 void Shaking(LSSolution *solution, unsigned op_neighbor, unsigned level);
 //void Shaking_Eduardo(NDSetSolution<LSSolution *> *non_dominated_set_in, NDSetSolution<LSSolution *> *non_dominated_set_out, unsigned op_neighbor, unsigned level);
+void Shaking(LSSolution *cur_solution, unsigned level);
 
 LSSolution * Destruction(LSSolution * solution, unsigned level);
 bool Construction(LSSolution * partial_solution,NDSetSolution<LSSolution *> *non_dominated_set_partial_a, vector<unsigned> removed_jobs);

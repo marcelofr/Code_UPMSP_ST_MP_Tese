@@ -105,6 +105,8 @@ struct parameters{
     unsigned u_destruction_factor;
     string s_decomposition_size, s_decomposition_neighboor_size;
     unsigned u_decomposition_size, u_decomposition_neighboor_size;
+    string s_initial_size;
+    unsigned u_initial_size;
 
 };
 
