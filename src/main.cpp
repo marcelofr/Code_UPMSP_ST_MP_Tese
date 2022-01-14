@@ -29,10 +29,15 @@ int main(int argc, char** argv)
         else if(alg_data.param.algorithm_name == "MOVNS_Arroyo"){
             alg_data.param.s_destruction_factor = argv[8];
             alg_data.param.s_initial_size = argv[9];
+            alg_data.param.s_level_perturbation = argv[10];
         }
         else if(alg_data.param.algorithm_name == "MOVNS_D"){
             alg_data.param.s_decomposition_size = argv[8];
-            alg_data.param.s_decomposition_neighboor_size = argv[9];
+            alg_data.param.s_destruction_factor = argv[9];
+            alg_data.param.s_level_perturbation = argv[10];
+        }
+        else if(alg_data.param.algorithm_name == "MOVNS"){
+            alg_data.param.s_level_perturbation = argv[8];
         }
         else if(alg_data.param.algorithm_name == "EXACT"){
             alg_data.param.s_alpha = argv[8];
@@ -64,8 +69,8 @@ int main(int argc, char** argv)
 
 
         //alg_data.param.algorithm_name = "MOVNS";
-        alg_data.param.algorithm_name = "MOVNS_Arroyo";
-        //alg_data.param.algorithm_name = "MOVNS_D";
+        //alg_data.param.algorithm_name = "MOVNS_Arroyo";
+        alg_data.param.algorithm_name = "MOVNS_D";
         //alg_data.param.algorithm_name = "NSGAII"; //nsga-ii
         //alg_data.param.algorithm_name = "EXACT";
         //alg_data.param.algorithm_name = "SPEA2";
@@ -77,7 +82,7 @@ int main(int argc, char** argv)
         //alg_data.param.algorithm_name = "GENERATE_LARGE_INSTANCES";
 
         alg_data.param.s_max_time_factor = "1000";
-        //alg_data.param.folder_solution = "../../Solutions/SMALL_12_01_2022_10_56/";
+        //alg_data.param.folder_solution = "../../Solutions/LARGE_12_01_2022_19_08_exe5/";
         //alg_data.param.folder_solution = "../../Solutions/LARGE_8/";
         alg_data.param.folder_solution = "../../Solutions/Test/";
         alg_data.param.file_solution = alg_data.param.folder_solution + alg_data.param.algorithm_name + "_"
@@ -87,12 +92,11 @@ int main(int argc, char** argv)
         alg_data.param.s_prob_mutation = "5";
 
         alg_data.param.s_decomposition_size = "40";
-        alg_data.param.s_decomposition_neighboor_size = "8";
 
-        alg_data.param.s_destruction_factor = "10";
-
-        alg_data.param.s_destruction_factor = "4";
+        alg_data.param.s_destruction_factor = "6";
         alg_data.param.s_initial_size = "40";
+
+        alg_data.param.s_level_perturbation = "4";
 
     }
 
@@ -109,7 +113,8 @@ int main(int argc, char** argv)
     alg_data.param.u_initial_size = unsigned(atoi(alg_data.param.s_initial_size.c_str()));
     //MOVNS_D
     alg_data.param.u_decomposition_size = unsigned(atoi(alg_data.param.s_decomposition_size.c_str()));
-    alg_data.param.u_decomposition_neighboor_size = unsigned(atoi(alg_data.param.s_decomposition_neighboor_size.c_str()));
+    //MOVNS
+    alg_data.param.u_level_perturbation = unsigned(atoi(alg_data.param.s_level_perturbation.c_str()));
 
 
     if(alg_data.param.algorithm_name == "CalculateMetric"){

@@ -329,11 +329,12 @@ void ReadFile(algorithm_data &alg_data)
         //Probabilidade de mutação
         file >> str;
         file >> num;
-        alg_data.param.s_decomposition_neighboor_size = num;
+        alg_data.param.s_destruction_factor = num;
 
         //param3
         file >> str;
-        file >> str;
+        file >> num;
+        alg_data.param.s_level_perturbation = num;
     }
     else{
         //param1

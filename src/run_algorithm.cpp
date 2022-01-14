@@ -484,20 +484,10 @@ void RunAlgorithmMOVNSD(algorithm_data alg_data, vector<Solution*> &non_dominate
 
     NDSetSolution<MonoSolution *> *non_dominated_set_ms = new NDSetSolution<MonoSolution *>();
 
-    unsigned sz = alg_data.param.u_decomposition_size;
-
-    //Tamanho de cada grupo
-    alg_data.num_group = alg_data.param.u_decomposition_neighboor_size;
-
-    //Quantidade de vizinhanças 5+1
-    alg_data.qtd_neighbor = QTD_NEIGHBOR;
-
-    alg_data.num_weights = sz;
-
 #ifdef DEBUG
     cout << "===========Inicio Solução Inicial===========" << endl;
 #endif
-    non_dominated_set_ms->ConstrutiveGreedyWeight(sz);
+    non_dominated_set_ms->ConstrutiveGreedyWeight(alg_data.param.u_decomposition_size);
     //non_dominated_set_ms->ConstrutiveGreedyAndRandom(sz);
 
 #ifdef DEBUG
@@ -575,8 +565,9 @@ void SalveFileSolution(algorithm_data alg_data){
     }
     else if(alg_data.param.algorithm_name == "MOVNS_D"){
         MyFile << "param1: " << alg_data.param.s_decomposition_size << endl;
-        MyFile << "param2: " << alg_data.param.s_decomposition_neighboor_size << endl;
-        MyFile << "param3: " << "nan" << endl;
+        MyFile << "param2: " << alg_data.param.s_destruction_factor << endl;
+        MyFile << "param3: " << alg_data.param.s_level_perturbation << endl;
+
     }
     else{
         MyFile << "param1: " << "nan" << endl;

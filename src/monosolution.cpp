@@ -51,11 +51,23 @@ void MonoSolution::CalculeMonoObjectiveTchebycheff(){
     if(this->TEC > Z_STAR::TEC){
         Z_STAR::TEC = this->TEC;
     }
-
     //Minha função objetivo
     this->objective_funtion =
             this->weights.first*(double(this->makeSpan)/double(Z_STAR::makespan)) +
             this->weights.second*(double(this->TEC)/double(Z_STAR::TEC));
+
+    //Vivian
+
+    /*if(this->makeSpan < Z_STAR::makespan){
+        Z_STAR::makespan = this->makeSpan;
+    }
+
+    if(this->TEC < Z_STAR::TEC){
+        Z_STAR::TEC = this->TEC;
+    }
+    this->objective_funtion =
+                max(this->weights.first*(this->makeSpan - Z_STAR::makespan),
+                this->weights.second*(this->TEC - Z_STAR::TEC));*/
 
 }
 

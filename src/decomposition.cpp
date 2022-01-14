@@ -1287,10 +1287,6 @@ void GenNeighborSol(MonoSolution *my_solution, unsigned op_neighbor)
             break;
     }
 
-#ifdef DEBUG
-    my_solution->Check();
-#endif
-
     *my_solution = *new_solution;
 
     delete new_solution;
@@ -1305,6 +1301,14 @@ MonoSolution * Shaking(MonoSolution *cur_solution, unsigned op_neighbor, unsigne
         //Gerar uma solução vizinha aleatoriamente
         GenNeighborSol(cur_solution, op_neighbor);
     }
+
+    cur_solution->CalculateShorterTimeHorizon();
+    cur_solution->CalculateObjective();
+    cur_solution->CalculeMonoObjectiveTchebycheff();
+
+#ifdef DEBUG
+    cur_solution->Check();
+#endif
 
     return cur_solution;
 }
@@ -1327,6 +1331,10 @@ void Shaking(MonoSolution *cur_solution, unsigned level)
     cur_solution->CalculateShorterTimeHorizon();
     cur_solution->CalculateObjective();
     cur_solution->CalculeMonoObjectiveTchebycheff();
+
+#ifdef DEBUG
+    cur_solution->Check();
+#endif
 
     delete new_solution;
 
@@ -1468,13 +1476,9 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
 
     MonoSolution * neighbor_solution = new MonoSolution();
     MonoSolution * best_solution;
-    //MonoSolution * cur_solution = new MonoSolution();
 
-    unsigned op_neighboor, intensification_level;
+    unsigned op_neighboor;
     bool improve;
-    long index;
-    unsigned num_neighboor;
-
 
     UpdateZ_STAR(non_dominated_set.set_solution);
 
@@ -1483,30 +1487,32 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
     }
 
     //---------------------Manter atualizado
-    //Número de vizinhanças
-    num_neighboor=5;
-    //Nível da perturbação
-    intensification_level = 3 + ceil(double(Instance::num_jobs)/double(750)*7);
-    index = 0;
+    //Tipo de busca que será utilizada
+    unsigned OP_BUSCA = 0;
     //---------------------
+
+    vector<unsigned> vet(non_dominated_set.set_solution.size());
+    iota(vet.begin(), vet.end(), 0);
+    random_shuffle(vet.begin(), vet.end());
+
+    auto v_index = 0;
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        auto s_index = index%non_dominated_set.set_solution.size();
+        auto op_shake = rand()%QTD_NEIGHBOR;
 
-        //Escolher a próxima solução a ser explorada
+        //auto s_index = rand()%non_dominated_set.set_solution.size();
+        auto s_index = vet[v_index%non_dominated_set.set_solution.size()];
         best_solution = non_dominated_set.set_solution[s_index];
-        best_solution->CalculeMonoObjectiveTchebycheff();
-
+        *neighbor_solution = *best_solution;
+        Shaking(neighbor_solution, op_shake, alg_data.param.u_level_perturbation);
+        //Shaking(neighbor_solution, op_shake, 8);
         op_neighboor = 0;
 
-        unsigned OP_BUSCA = 0;
-
-        while (op_neighboor < num_neighboor && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+        while (op_neighboor < QTD_NEIGHBOR && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+        //while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
             improve=false;
-            *neighbor_solution = *best_solution;
-            //*neighbor_solution = *cur_solution;
 
             switch (op_neighboor) {
                 case 0:
@@ -1548,34 +1554,39 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
             if(OP_BUSCA==0){
                 //Verificar se houve melhora
                 if(improve){
-                    //CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
                     *best_solution = *neighbor_solution;
+                    //op_neighboor=0;
+                }
+                else{
+                    //Seguir para próxima vizinhança
+                    op_neighboor++;
                 }
             }//Se a busca é best improvement
             else{
                 //Verificar se houve melhora
                 best_solution->CalculeMonoObjectiveTchebycheff();
                 if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-                    //CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
                     *best_solution = *neighbor_solution;
+                    //op_neighboor=0;
+                }
+                else{
+                    //Seguir para próxima vizinhança
+                    op_neighboor++;
                 }
             }
 
-            //Seguir para próxima vizinhança
-            op_neighboor++;
 
             //Se não tem próxima vizinhança, fazer a intensificação
-            if(op_neighboor == num_neighboor){
+            if(op_neighboor == QTD_NEIGHBOR){
 
                 *neighbor_solution = *best_solution;
 
-                IntesificationArroyo(neighbor_solution, intensification_level);
+                IntesificationArroyo(neighbor_solution, alg_data.param.u_destruction_factor);
 
                 best_solution->CalculeMonoObjectiveTchebycheff();
 
                 //Verificar se houve melhora
                 if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
-                    CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
                     *best_solution = *neighbor_solution;
                 }
 
@@ -1589,7 +1600,6 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
 
                     if(neighbor_solution->objective_funtion - best_solution->objective_funtion < -EPS){
 
-                        CheckDominatedSolution(non_dominated_set.set_solution, neighbor_solution);
                         *best_solution = *neighbor_solution;
 
                     }
@@ -1599,17 +1609,16 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
 
             t1->stop();
         }
+        //--------------------
+        v_index++;
+        if(v_index%non_dominated_set.set_solution.size() == 0)
+            random_shuffle(vet.begin(), vet.end());
 
         UpdateZ_STAR(non_dominated_set.set_solution);
-
-        index++;
         t1->stop();
     }
 
-
-    //delete best_solution;
     delete neighbor_solution;
-    //delete cur_solution;
 }
 
 void CheckDominatedSolution(vector<MonoSolution *> set_solution, MonoSolution * my_solution){
@@ -1635,6 +1644,7 @@ void UpdateZ_STAR(vector<MonoSolution *> &set_solution){
     Z_STAR::makespan = Z_STAR::TEC = 0;
 
     for(auto it:set_solution){
+        //Meu
         if(it->makeSpan > Z_STAR::makespan){
             Z_STAR::makespan = it->makeSpan;
         }
@@ -1642,6 +1652,15 @@ void UpdateZ_STAR(vector<MonoSolution *> &set_solution){
         if(it->TEC > Z_STAR::TEC){
             Z_STAR::TEC = it->TEC;
         }
+
+        //Vivian
+        /*if(it->makeSpan < Z_STAR::makespan){
+            Z_STAR::makespan = it->makeSpan;
+        }
+
+        if(it->TEC < Z_STAR::TEC){
+            Z_STAR::TEC = it->TEC;
+        }*/
     }
 }
 

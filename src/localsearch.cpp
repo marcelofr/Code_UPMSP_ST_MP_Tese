@@ -341,13 +341,6 @@ void MOVNS(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data alg_da
 {
     LSSolution * neighbor_solution = new LSSolution();
     unsigned op_neighboor;
-    unsigned num_neighboor;
-
-    //---------------------Manter atualizado
-    //Número de vizinhanças
-    num_neighboor=5;
-    auto perturbation_level = 2;
-    //---------------------
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
@@ -355,12 +348,12 @@ void MOVNS(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data alg_da
 
         unsigned OP_BUSCA = 0;
 
-        while (op_neighboor < num_neighboor && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+        while (op_neighboor < QTD_NEIGHBOR && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
             auto s_index = rand()%non_dominated_set.set_solution.size();
             non_dominated_set.set_solution[s_index]->was_visited = true;
             *neighbor_solution = *non_dominated_set.set_solution[s_index];
-            Shaking(neighbor_solution, perturbation_level);
+            Shaking(neighbor_solution, alg_data.param.u_level_perturbation);
 
             switch (op_neighboor) {
                 case 0:
@@ -405,20 +398,6 @@ void MOVNS(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data alg_da
 
         }
 
-        auto all_visited=true;
-        for(auto it_sol:non_dominated_set.set_solution){
-            if(!it_sol->was_visited){
-                all_visited=false;
-                break;
-            }
-        }
-        if(all_visited){
-            perturbation_level++;
-            if(perturbation_level > 10){
-                perturbation_level=2;
-            }
-        }
-
         t1->stop();
 
     }
@@ -430,29 +409,32 @@ void MOVNS_Arroyo(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data
 {
 
     LSSolution * neighbor_solution = new LSSolution();
-    unsigned op_neighboor, intensification_level;
-    unsigned num_neighboor;
+    unsigned op_neighboor;
 
     //---------------------Manter atualizado
-    //Número de vizinhanças
-    num_neighboor=5;
     //Nível da perturbação
-    intensification_level = alg_data.param.u_destruction_factor;
-    auto perturbation_level = 2;
-
+    unsigned OP_BUSCA = 0;
     //---------------------
+
+    for(unsigned i=0; i<non_dominated_set.set_solution.size(); i++){
+        non_dominated_set.set_solution[i]->was_visited = false;
+    }
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        op_neighboor = 0;
+        //while (op_neighboor < QTD_NEIGHBOR && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+        while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        unsigned OP_BUSCA = 0;
+            unsigned s_index;
+            do{
+                s_index = rand()%non_dominated_set.set_solution.size();
+            }while (non_dominated_set.set_solution[s_index]->was_visited == true || non_dominated_set.set_solution.size() == 0);
 
-        while (op_neighboor < num_neighboor && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
-
-            auto s_index = rand()%non_dominated_set.set_solution.size();
+            //non_dominated_set.set_solution[s_index]->was_visited = true;
             *neighbor_solution = *non_dominated_set.set_solution[s_index];
-            Shaking(neighbor_solution, perturbation_level);
+            Shaking(neighbor_solution, alg_data.param.u_level_perturbation);
+
+            op_neighboor = rand()%QTD_NEIGHBOR;
 
             switch (op_neighboor) {
                 case 0:
@@ -490,18 +472,25 @@ void MOVNS_Arroyo(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data
                     break;
             }
 
-            //Seguir para próxima vizinhança
-            op_neighboor++;
+            s_index = rand()%non_dominated_set.set_solution.size();
+            *neighbor_solution = *non_dominated_set.set_solution[s_index];
+            IntesificationArroyo(neighbor_solution, non_dominated_set, alg_data.param.u_destruction_factor);
 
-            //Se não tem próxima vizinhança, fazer a intensificação
-            if(op_neighboor == num_neighboor){
-
-                auto s_index = rand()%non_dominated_set.set_solution.size();
-
-                *neighbor_solution = *non_dominated_set.set_solution[s_index];
-
-                IntesificationArroyo(neighbor_solution, non_dominated_set, intensification_level);
+            //------Se todos foram visitados
+            auto all_visited=true;
+            for(unsigned i=0; i<non_dominated_set.set_solution.size(); i++){
+                if(!non_dominated_set.set_solution[i]->was_visited){
+                    all_visited=false;
+                    break;
+                }
             }
+            //Marcar todos como não-visitados
+            if(all_visited){
+                for(unsigned i=0; i<non_dominated_set.set_solution.size(); i++){
+                    non_dominated_set.set_solution[i]->was_visited = false;
+                }
+            }
+            //-------------------
 
             t1->stop();
 

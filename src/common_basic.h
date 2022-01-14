@@ -103,10 +103,12 @@ struct parameters{
     string s_seed, s_max_time_factor, s_alpha, s_prob_mutation, s_population_size;
     string s_destruction_factor;
     unsigned u_destruction_factor;
-    string s_decomposition_size, s_decomposition_neighboor_size;
-    unsigned u_decomposition_size, u_decomposition_neighboor_size;
+    string s_decomposition_size;
+    unsigned u_decomposition_size;
     string s_initial_size;
     unsigned u_initial_size;
+    string s_level_perturbation;
+    unsigned u_level_perturbation;
 
 };
 
