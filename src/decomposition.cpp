@@ -1507,9 +1507,10 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
         *neighbor_solution = *best_solution;
         Shaking(neighbor_solution, op_shake, alg_data.param.u_level_perturbation);
         //Shaking(neighbor_solution, op_shake, 8);
-        op_neighboor = 0;
+        //op_neighboor = 0;
+        op_neighboor = rand()%QTD_NEIGHBOR;
 
-        while (op_neighboor < QTD_NEIGHBOR && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+        //while (op_neighboor < QTD_NEIGHBOR && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
         //while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
             improve=false;
@@ -1577,7 +1578,7 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
 
 
             //Se não tem próxima vizinhança, fazer a intensificação
-            if(op_neighboor == QTD_NEIGHBOR){
+            //if(op_neighboor == QTD_NEIGHBOR){
 
                 *neighbor_solution = *best_solution;
 
@@ -1605,10 +1606,10 @@ void MOVNS_D(NDSetSolution<MonoSolution *> &non_dominated_set, algorithm_data al
                     }
                 }
 
-            }
+            //}
 
             t1->stop();
-        }
+        //}
         //--------------------
         v_index++;
         if(v_index%non_dominated_set.set_solution.size() == 0)
