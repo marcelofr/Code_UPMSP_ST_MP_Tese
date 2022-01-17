@@ -425,10 +425,13 @@ void MOVNS_Arroyo(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data
         //while (op_neighboor < QTD_NEIGHBOR && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
         while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-            unsigned s_index;
+            unsigned s_index,i=0;
             do{
                 s_index = rand()%non_dominated_set.set_solution.size();
-            }while (non_dominated_set.set_solution[s_index]->was_visited == true || non_dominated_set.set_solution.size() == 0);
+                i++;
+            }while (non_dominated_set.set_solution[s_index]->was_visited == true
+                    && non_dominated_set.set_solution.size() > 0
+                    && i < 100);
 
             //non_dominated_set.set_solution[s_index]->was_visited = true;
             *neighbor_solution = *non_dominated_set.set_solution[s_index];

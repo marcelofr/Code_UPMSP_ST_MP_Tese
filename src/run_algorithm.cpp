@@ -331,7 +331,7 @@ void RunAlgorithmMOVNS(algorithm_data alg_data, vector<Solution*> &non_dominated
 
     //--Gerar solução ponderada
     NDSetSolution<MonoSolution *> *non_dominated_set_local_2 = new NDSetSolution<MonoSolution *>();
-    non_dominated_set_local_2->ConstrutiveGreedyWeight(alg_data.param.u_population_size);
+    non_dominated_set_local_2->ConstrutiveGreedyWeight(alg_data.param.u_initial_size);
     obj_nd_set_solution->set_solution.clear();
     for(auto it:non_dominated_set_local_2->set_solution){
         obj_nd_set_solution->AddSolution(it);
@@ -566,6 +566,18 @@ void SalveFileSolution(algorithm_data alg_data){
     else if(alg_data.param.algorithm_name == "MOVNS_D"){
         MyFile << "param1: " << alg_data.param.s_decomposition_size << endl;
         MyFile << "param2: " << alg_data.param.s_destruction_factor << endl;
+        MyFile << "param3: " << alg_data.param.s_level_perturbation << endl;
+
+    }
+    else if(alg_data.param.algorithm_name == "MOVNS"){
+        MyFile << "param1: " << alg_data.param.s_level_perturbation << endl;
+        MyFile << "param2: " << alg_data.param.s_initial_size << endl;
+        MyFile << "param3: " << "nan" << endl;
+
+    }
+    else if(alg_data.param.algorithm_name == "MOVNS_Arroyo"){
+        MyFile << "param1: " << alg_data.param.s_level_perturbation << endl;
+        MyFile << "param2: " << alg_data.param.s_initial_size << endl;
         MyFile << "param3: " << alg_data.param.s_level_perturbation << endl;
 
     }

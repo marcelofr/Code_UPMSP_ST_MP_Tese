@@ -36,8 +36,9 @@ int main(int argc, char** argv)
             alg_data.param.s_destruction_factor = argv[9];
             alg_data.param.s_level_perturbation = argv[10];
         }
-        else if(alg_data.param.algorithm_name == "MOVNS"){
-            alg_data.param.s_level_perturbation = argv[8];
+        else if(alg_data.param.algorithm_name == "MOVNS"){            
+            alg_data.param.s_initial_size = argv[8];
+            alg_data.param.s_level_perturbation = argv[9];
         }
         else if(alg_data.param.algorithm_name == "EXACT"){
             alg_data.param.s_alpha = argv[8];

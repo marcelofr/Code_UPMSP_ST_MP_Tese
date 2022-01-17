@@ -433,6 +433,8 @@ LSSolution * Destruction(LSSolution * solution, unsigned level){
     unsigned machine, job_position;
     vector<unsigned> removed_jobs;
 
+    level = min(level, Instance::num_machine);
+
 
     //Remover as tarefas da máquina com o makespan
     unsigned i;
