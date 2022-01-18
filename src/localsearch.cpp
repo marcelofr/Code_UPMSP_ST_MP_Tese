@@ -422,8 +422,10 @@ void MOVNS_Arroyo(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data
 
     while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
-        //while (op_neighboor < QTD_NEIGHBOR && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
-        while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+        op_neighboor = 0;
+
+        while (op_neighboor < QTD_NEIGHBOR && t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
+        //while (t1->getElapsedTimeInMilliSec() < alg_data.time_limit) {
 
             unsigned s_index,i=0;
             do{
@@ -437,7 +439,7 @@ void MOVNS_Arroyo(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data
             *neighbor_solution = *non_dominated_set.set_solution[s_index];
             Shaking(neighbor_solution, alg_data.param.u_level_perturbation);
 
-            op_neighboor = rand()%QTD_NEIGHBOR;
+            //op_neighboor = rand()%QTD_NEIGHBOR;
 
             switch (op_neighboor) {
                 case 0:
@@ -494,6 +496,8 @@ void MOVNS_Arroyo(NDSetSolution<LSSolution *> &non_dominated_set, algorithm_data
                 }
             }
             //-------------------
+
+            op_neighboor++;
 
             t1->stop();
 

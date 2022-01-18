@@ -289,7 +289,7 @@ void ReadFile(algorithm_data &alg_data)
     file >> d_num;
     alg_data.elapsed_time_sec = d_num;
 
-    if(alg_data.param.algorithm_name == "GA"){
+    if(alg_data.param.algorithm_name == "NSGAI" || alg_data.param.algorithm_name == "NSGAII" || alg_data.param.algorithm_name == "MOGA"){
 
         //Tamanho da população
         file >> str;
@@ -309,8 +309,8 @@ void ReadFile(algorithm_data &alg_data)
 
         //Tamanho da população
         file >> str;
-        file >> num;
-        alg_data.param.s_destruction_factor = num;
+        file >> str;
+        //alg_data.param.s_destruction_factor = num;
 
         //param2
         file >> str;
@@ -333,8 +333,9 @@ void ReadFile(algorithm_data &alg_data)
 
         //param3
         file >> str;
-        file >> num;
-        alg_data.param.s_level_perturbation = num;
+        file >> str;
+        //file >> num;
+        //alg_data.param.s_level_perturbation = num;
     }
     else{
         //param1
